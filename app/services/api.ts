@@ -2,11 +2,10 @@ import axios from 'axios';
 
 // Configuración de Axios con baseURL
 const api = axios.create({
-  baseURL: 'https://larry-sighful-hildegarde.ngrok-free.app',
+  baseURL: 'https://tecniflux-production.up.railway.app', // <--- ¡CON COMILLAS!
   timeout: 10000,
   headers: {
     'Content-Type': 'application/json',
-    'ngrok-skip-browser-warning': 'true',
   },
 });
 
@@ -43,4 +42,3 @@ export const authAPI = {
 };
 
 export default api;
-
