@@ -3,8 +3,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useState, useEffect } from 'react';
-import { Search as SearchIcon, ArrowLeft, FileText, AlertCircle, LogOut } from 'lucide-react-native';
-import * as SecureStore from 'expo-secure-store';
+import { Search as SearchIcon, ArrowLeft, FileText, AlertCircle } from 'lucide-react-native';
 // ✅ RUTA CORREGIDA: Solo sube un nivel (../) para encontrar la carpeta 'services'
 import api from '../services/api'; 
 
@@ -43,7 +42,7 @@ export default function SearchScreen() {
     try {
       // Nota: El backend todavía no tiene datos, esto debe devolver 404/Empty.
       const response = await api.get('/api/diagrams/search', {
-        params: { query: text }
+        params: { q: text }
       });
       setResults(response.data.diagrams); // Asumiendo que devuelve un objeto con un array 'diagrams'
     } catch (err) {
@@ -54,11 +53,6 @@ export default function SearchScreen() {
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleLogout = async () => {
-    await SecureStore.deleteItemAsync('userToken');
-    router.replace('/login');
   };
 
   const renderItem = ({ item }: { item: Diagram }) => (
@@ -101,13 +95,6 @@ export default function SearchScreen() {
             autoFocus={!q}
           />
         </View>
-        <TouchableOpacity 
-          onPress={handleLogout} 
-          className="ml-2 bg-red-500 p-2 rounded-lg"
-          activeOpacity={0.7}
-        >
-          <LogOut size={20} color="white" />
-        </TouchableOpacity>
       </View>
       <View className="flex-1 px-4 pt-4">
         {loading ? (
