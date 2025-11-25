@@ -19,8 +19,21 @@ export default function DashboardScreen() {
     'Audi',
   ];
 
+  // 1. Función para ir a búsqueda general (cuando tocas la barra)
   const handleSearch = () => {
-    router.push('/search');
+    router.push({
+      pathname: '/search',
+      params: { q: '' } // Envía búsqueda vacía
+    });
+  };
+
+  // 2. Función para ir a búsqueda por Marca (cuando tocas un logo)
+  const handleBrandSearch = (marca: string) => {
+    console.log("Buscando marca:", marca); 
+    router.push({
+      pathname: '/search',
+      params: { q: marca } // Envía el nombre de la marca
+    });
   };
 
   const handleScanner = () => {
@@ -59,6 +72,7 @@ export default function DashboardScreen() {
           {marcas.map((marca, index) => (
             <TouchableOpacity
               key={index}
+              onPress={() => handleBrandSearch(marca)} // <--- AQUÍ ESTÁ LA MAGIA
               className="w-[22%] aspect-square bg-slate-800 rounded-xl items-center justify-center mb-3 border border-slate-700/50 p-1"
               activeOpacity={0.7}
             >
