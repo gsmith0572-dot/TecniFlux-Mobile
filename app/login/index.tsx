@@ -3,6 +3,7 @@ import { StatusBar } from 'expo-status-bar';
 import { useRouter } from 'expo-router';
 import { Zap, Mail, Lock } from 'lucide-react-native';
 import { useState } from 'react';
+import * as SecureStore from 'expo-secure-store';
 import { authAPI } from '../services/api';
 
 export default function LoginScreen() {
@@ -21,11 +22,28 @@ export default function LoginScreen() {
     setLoading(true);
     
     try {
+      console.log('[handleLogin] Iniciando proceso de login...');
       const userData = await authAPI.login(username.trim(), password);
       
+      console.log('[handleLogin] Login exitoso, datos recibidos:', {
+        hasUser: !!userData.user,
+        hasToken: !!userData.token,
+        user: userData.user,
+      });
+      
+      // Verificar que el token se guardó antes de navegar
+      const savedToken = await SecureStore.getItemAsync('userToken');
+      console.log('[handleLogin] Token verificado antes de navegar:', savedToken ? '✅ Token existe' : '❌ NO HAY TOKEN');
+      
+      if (!savedToken) {
+        console.error('[handleLogin] ⚠️ ADVERTENCIA: Navegando sin token guardado');
+      }
+      
       // Login exitoso - navegar al dashboard
+      console.log('[handleLogin] Navegando a /dashboard...');
       router.replace('/dashboard');
     } catch (error: any) {
+      console.error('[handleLogin] Error en login:', error);
       // Mostrar error al usuario
       Alert.alert('Error', error.message || 'Credenciales inválidas');
     } finally {

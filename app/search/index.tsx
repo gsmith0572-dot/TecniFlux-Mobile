@@ -41,15 +41,32 @@ export default function SearchScreen() {
     setQuery(text);
 
     try {
+      // Verificar token antes de buscar
+      const token = await SecureStore.getItemAsync('userToken');
+      console.log('[handleSearch] Token antes de búsqueda:', token ? `${token.substring(0, 20)}...` : '❌ NO HAY TOKEN');
+      
+      console.log('[handleSearch] Iniciando búsqueda de:', text);
       // Nota: El backend todavía no tiene datos, esto debe devolver 404/Empty.
       const response = await api.get('/api/diagrams/search', {
         params: { query: text }
       });
-      setResults(response.data.diagrams); // Asumiendo que devuelve un objeto con un array 'diagrams'
-    } catch (err) {
-      console.error("Error buscando:", err);
-      // El 404 no es un error de conexión, sino de ruta o datos.
-      setError('No se pudo encontrar la ruta de búsqueda (Error 404).'); 
+      console.log('[handleSearch] ✅ Búsqueda exitosa, resultados:', response.data.diagrams?.length || 0);
+      setResults(response.data.diagrams || []); // Asumiendo que devuelve un objeto con un array 'diagrams'
+    } catch (err: any) {
+      console.error("[handleSearch] ❌ Error buscando:", {
+        message: err.message,
+        response: err.response?.data,
+        status: err.response?.status,
+        statusText: err.response?.statusText,
+      });
+      
+      if (err.response?.status === 403) {
+        setError('Error 403: Token inválido o expirado. Por favor, inicia sesión nuevamente.');
+      } else if (err.response?.status === 404) {
+        setError('No se encontraron diagramas para esta búsqueda.');
+      } else {
+        setError(err.response?.data?.error || 'Error al buscar diagramas');
+      }
       setResults([]);
     } finally {
       setLoading(false);
@@ -63,6 +80,7 @@ export default function SearchScreen() {
 
   const renderItem = ({ item }: { item: Diagram }) => (
     <TouchableOpacity 
+      onPress={() => router.push(`/diagram/${item.id}`)}
       className="bg-slate-800 p-4 rounded-xl mb-3 border border-slate-700 flex-row items-center"
       activeOpacity={0.7}
     >
