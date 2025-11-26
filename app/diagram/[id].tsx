@@ -1,11 +1,14 @@
-import { View, Text, TouchableOpacity, ActivityIndicator, ScrollView } from 'react-native';
+import { View, Text, TouchableOpacity, ActivityIndicator, ScrollView, Modal, Dimensions } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useState, useEffect } from 'react';
-import { ArrowLeft, FileText, Car, Calendar, Settings, ExternalLink, AlertCircle } from 'lucide-react-native';
-import * as WebBrowser from 'expo-web-browser';
+import { ArrowLeft, FileText, Car, Calendar, Settings, Eye, AlertCircle, X } from 'lucide-react-native';
+import { WebView } from 'react-native-webview';
+import * as SecureStore from 'expo-secure-store';
 import api from '../services/api';
+
+const { width, height } = Dimensions.get('window');
 
 interface DiagramDetail {
   id: number;
@@ -24,7 +27,11 @@ export default function DiagramDetailScreen() {
   const [diagram, setDiagram] = useState<DiagramDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [opening, setOpening] = useState(false);
+  const [showPDF, setShowPDF] = useState(false);
+  const [pdfLoading, setPdfLoading] = useState(true);
+  const [pdfError, setPdfError] = useState(false);
+  const [pdfUrl, setPdfUrl] = useState<string | null>(null);
+  const [loadTimeout, setLoadTimeout] = useState<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     if (id) {
@@ -72,28 +79,87 @@ export default function DiagramDetailScreen() {
     }
   };
 
-  const handleOpenPDF = async () => {
+  // Función para extraer fileId de URL de Google Drive
+  const getFileIdFromUrl = (url: string): string | null => {
+    // Intentar extraer de diferentes formatos de URL de Google Drive
+    // Formato 1: https://drive.google.com/file/d/[ID]/view
+    // Formato 2: https://drive.google.com/uc?export=download&id=[ID]
+    // Formato 3: https://drive.google.com/open?id=[ID]
+    
+    const patterns = [
+      /\/file\/d\/([-\w]{25,})/,
+      /[?&]id=([-\w]{25,})/,
+      /\/d\/([-\w]{25,})/,
+    ];
+    
+    for (const pattern of patterns) {
+      const match = url.match(pattern);
+      if (match && match[1]) {
+        return match[1];
+      }
+    }
+    
+    // Si no coincide con ningún patrón, intentar extraer cualquier ID largo
+    const fallbackMatch = url.match(/([-\w]{25,})/);
+    return fallbackMatch ? fallbackMatch[0] : null;
+  };
+
+  const handleOpenPDF = () => {
     if (!diagram?.directUrl) {
       console.warn('[handleOpenPDF] ⚠️ No hay directUrl disponible');
       return;
     }
     
-    try {
-      console.log('[handleOpenPDF] Abriendo PDF:', diagram.directUrl);
-      setOpening(true);
-      await WebBrowser.openBrowserAsync(diagram.directUrl, {
-        presentationStyle: WebBrowser.WebBrowserPresentationStyle.FULL_SCREEN,
-        controlsColor: '#06b6d4',
-        toolbarColor: '#0f172a',
-      });
-      console.log('[handleOpenPDF] ✅ PDF abierto correctamente');
-    } catch (err) {
-      console.error('[handleOpenPDF] ❌ Error abriendo PDF:', err);
-      setError('No se pudo abrir el PDF');
-    } finally {
-      setOpening(false);
+    console.log('[handleOpenPDF] Abriendo visor PDF con Google Drive Viewer');
+    console.log('[handleOpenPDF] URL original:', diagram.directUrl);
+    
+    // Extraer fileId de la URL
+    const pdfUrl = decodeURIComponent(diagram.directUrl);
+    const fileId = getFileIdFromUrl(pdfUrl);
+    
+    if (!fileId) {
+      console.error('[handleOpenPDF] ❌ No se pudo extraer fileId de la URL');
+      setPdfError(true);
+      setPdfLoading(false);
+      return;
     }
+    
+    console.log('[handleOpenPDF] FileId extraído:', fileId);
+    
+    // Usar viewer embebido de Google Drive con formato /preview
+    const viewerUrl = `https://drive.google.com/file/d/${fileId}/preview`;
+    
+    console.log('[handleOpenPDF] URL del viewer:', viewerUrl);
+    
+    setPdfUrl(viewerUrl);
+    setPdfLoading(true);
+    setPdfError(false);
+    setShowPDF(true);
+    
+    // Timeout de 30 segundos
+    const timeout = setTimeout(() => {
+      if (pdfLoading) {
+        console.warn('[handleOpenPDF] ⚠️ Timeout: PDF no cargó en 30 segundos');
+        setPdfLoading(false);
+        setPdfError(true);
+      }
+    }, 30000);
+    
+    setLoadTimeout(timeout);
   };
+
+  // Limpiar timeout cuando se cierra el modal
+  useEffect(() => {
+    if (!showPDF && loadTimeout) {
+      clearTimeout(loadTimeout);
+      setLoadTimeout(null);
+    }
+    return () => {
+      if (loadTimeout) {
+        clearTimeout(loadTimeout);
+      }
+    };
+  }, [showPDF, loadTimeout]);
 
   const getSystemLabel = (system: string) => {
     const systems: Record<string, string> = {
@@ -223,26 +289,316 @@ export default function DiagramDetailScreen() {
         {/* Botón Ver Diagrama */}
         <TouchableOpacity
           onPress={handleOpenPDF}
-          disabled={opening || !diagram.directUrl}
+          disabled={!diagram.directUrl}
           className="bg-cyan-500 rounded-xl p-4 flex-row items-center justify-center mb-6"
           activeOpacity={0.8}
           style={{
-            opacity: (opening || !diagram.directUrl) ? 0.6 : 1,
+            opacity: !diagram.directUrl ? 0.6 : 1,
           }}
         >
-          {opening ? (
-            <>
-              <ActivityIndicator size="small" color="white" />
-              <Text className="text-white font-bold text-lg ml-3">Abriendo...</Text>
-            </>
-          ) : (
-            <>
-              <ExternalLink size={24} color="white" />
-              <Text className="text-white font-bold text-lg ml-3">Ver Diagrama PDF</Text>
-            </>
-          )}
+          <Eye size={24} color="white" />
+          <Text className="text-white font-bold text-lg ml-3">Ver Diagrama PDF</Text>
         </TouchableOpacity>
       </ScrollView>
+
+      {/* Modal con visor PDF integrado */}
+      <Modal
+        visible={showPDF}
+        animationType="slide"
+        presentationStyle="fullScreen"
+        onRequestClose={() => router.back()}
+      >
+        <SafeAreaView className="flex-1 bg-slate-900">
+          <StatusBar style="light" />
+          
+          {/* Header del modal */}
+          <View className="px-4 py-3 flex-row items-center justify-between border-b border-slate-800 bg-slate-900">
+            <Text className="text-white text-lg font-bold flex-1">Diagrama PDF</Text>
+            <TouchableOpacity
+              onPress={() => router.back()}
+              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+              className="p-2"
+              activeOpacity={0.7}
+            >
+              <X size={28} color="white" />
+            </TouchableOpacity>
+          </View>
+
+          {/* Visor PDF */}
+          <View className="flex-1 bg-slate-900">
+            {pdfLoading && (
+              <View className="absolute inset-0 items-center justify-center bg-slate-900 z-10">
+                <FileText size={64} color="#06b6d4" />
+                <ActivityIndicator size="large" color="#06b6d4" className="mt-6" />
+                <Text className="text-white text-xl font-bold mt-4">
+                  Preparando tu diagrama
+                </Text>
+                <Text className="text-slate-400 mt-2 text-center px-8">
+                  Estamos cargando el manual técnico del vehículo
+                </Text>
+              </View>
+            )}
+            
+            {pdfError ? (
+              <View className="flex-1 justify-center items-center px-4">
+                <AlertCircle size={64} color="#ef4444" />
+                <Text className="text-red-400 mt-4 text-center text-lg font-semibold">
+                  No pudimos cargar el diagrama. Verifica tu conexión.
+                </Text>
+                <TouchableOpacity
+                  onPress={() => {
+                    console.log('[PDF Viewer] Reintentando carga');
+                    setPdfError(false);
+                    setPdfLoading(true);
+                    // Reiniciar timeout
+                    if (loadTimeout) {
+                      clearTimeout(loadTimeout);
+                    }
+                    const timeout = setTimeout(() => {
+                      if (pdfLoading) {
+                        setPdfLoading(false);
+                        setPdfError(true);
+                      }
+                    }, 30000);
+                    setLoadTimeout(timeout);
+                  }}
+                  className="mt-6 bg-cyan-500 px-6 py-3 rounded-xl"
+                >
+                  <Text className="text-white font-semibold">Reintentar</Text>
+                </TouchableOpacity>
+              </View>
+            ) : pdfUrl ? (
+              <WebView
+                source={{ uri: pdfUrl }}
+                style={{ flex: 1, backgroundColor: '#0f172a' }}
+                onLoadStart={() => {
+                  console.log('[WebView] Iniciando carga del PDF desde Google Drive');
+                  setPdfLoading(true);
+                  setPdfError(false);
+                }}
+                onLoadEnd={() => {
+                  console.log('[WebView] PDF cargado completamente');
+                  setPdfLoading(false);
+                  if (loadTimeout) {
+                    clearTimeout(loadTimeout);
+                    setLoadTimeout(null);
+                  }
+                }}
+                onError={(syntheticEvent) => {
+                  const { nativeEvent } = syntheticEvent;
+                  console.error('[WebView] Error:', nativeEvent);
+                  setPdfError(true);
+                  setPdfLoading(false);
+                  if (loadTimeout) {
+                    clearTimeout(loadTimeout);
+                    setLoadTimeout(null);
+                  }
+                }}
+                // Interceptar y bloquear navegación a URLs de descarga
+                onShouldStartLoadWithRequest={(request) => {
+                  const url = request.url.toLowerCase();
+                  console.log('[WebView] Request URL:', request.url);
+                  
+                  // URLs especiales que siempre deben permitirse
+                  if (url === 'about:blank' || url.startsWith('about:')) {
+                    console.log('[WebView] ✅ Permitida URL especial (about:blank)');
+                    return true;
+                  }
+                  
+                  // Patrones de URLs de descarga a bloquear (más específicos)
+                  const downloadPatterns = [
+                    '/uc?export=download',  // Descarga directa
+                    'export=download&',     // Parámetro de descarga
+                    'download=true',        // Flag de descarga
+                    'force=true',           // Forzar descarga
+                    '/file/d/.*/view[^?]*$', // Vista completa (no preview)
+                    '/file/d/.*/edit',      // Edición
+                  ];
+                  
+                  // Verificar si la URL contiene patrones de descarga
+                  const isDownloadUrl = downloadPatterns.some(pattern => {
+                    const regex = new RegExp(pattern, 'i');
+                    return regex.test(url);
+                  });
+                  
+                  if (isDownloadUrl) {
+                    console.warn('[WebView] ⚠️ Bloqueada URL de descarga:', request.url);
+                    return false; // Bloquear navegación
+                  }
+                  
+                  // Permitir URLs de Google necesarias para el funcionamiento
+                  const allowedPatterns = [
+                    'drive.google.com/file/d/.*/preview',  // Preview del PDF
+                    'drive.google.com/file/d/.*/view',      // Vista (solo si no es descarga)
+                    'googleusercontent.com',                // Contenido de Google
+                    'gstatic.com',                          // Recursos estáticos
+                    'google.com/recaptcha',                 // reCAPTCHA
+                    'google.com/accounts',                  // Autenticación
+                    'google.com/auth',                      // Autenticación
+                    'accounts.google.com',                   // Cuentas de Google
+                    'auth_warmup',                          // Warmup de autenticación
+                    'googleapis.com',                        // APIs de Google
+                    'googletagmanager.com',                  // Tag Manager
+                    'doubleclick.net',                       // Servicios de Google
+                    'google-analytics.com',                  // Analytics
+                    'googleadservices.com',                  // Ad Services
+                  ];
+                  
+                  const isAllowed = allowedPatterns.some(pattern => {
+                    const regex = new RegExp(pattern, 'i');
+                    return regex.test(url);
+                  });
+                  
+                  // Permitir también URLs relativas o del mismo origen
+                  if (url.startsWith('data:') || url.startsWith('blob:') || url.startsWith('javascript:')) {
+                    console.log('[WebView] ✅ Permitida URL de datos/blob');
+                    return true;
+                  }
+                  
+                  if (!isAllowed) {
+                    // Si es una URL de Google Drive pero no coincide con patrones, verificar que no sea descarga
+                    if (url.includes('drive.google.com')) {
+                      // Permitir si no es una URL de descarga explícita
+                      if (!url.includes('export=download') && !url.includes('download=true')) {
+                        console.log('[WebView] ✅ Permitida URL de Google Drive (navegación interna)');
+                        return true;
+                      }
+                    }
+                    
+                    console.warn('[WebView] ⚠️ Bloqueada URL no permitida:', request.url);
+                    return false;
+                  }
+                  
+                  console.log('[WebView] ✅ Permitida URL:', request.url);
+                  return true; // Permitir navegación
+                }}
+                // JavaScript para ocultar completamente botones de descarga
+                injectedJavaScript={`
+                  (function() {
+                    // Función para ocultar botones de descarga completamente
+                    const hideDownloadButtons = () => {
+                      // Seleccionar todos los botones de descarga
+                      const downloadButtons = document.querySelectorAll(
+                        '[aria-label*="Download"], [aria-label*="Descargar"], ' +
+                        '[download], a[href*="export=download"], ' +
+                        'button[aria-label*="download" i], ' +
+                        '[role="button"][aria-label*="download"]'
+                      );
+                      
+                      downloadButtons.forEach(btn => {
+                        btn.style.setProperty('display', 'none', 'important');
+                        btn.style.setProperty('visibility', 'hidden', 'important');
+                        btn.style.setProperty('opacity', '0', 'important');
+                        btn.disabled = true;
+                        btn.remove();
+                      });
+                      
+                      // También ocultar iconos de descarga
+                      const downloadIcons = document.querySelectorAll(
+                        'svg path[d*="download"], ' +
+                        '.download-icon, ' +
+                        '[class*="download"]'
+                      );
+                      
+                      downloadIcons.forEach(icon => {
+                        const parent = icon.closest('button, a, [role="button"]');
+                        if (parent) {
+                          parent.style.setProperty('display', 'none', 'important');
+                          parent.remove();
+                        }
+                      });
+                      
+                      // Ocultar cualquier elemento con texto "Download" o "Descargar"
+                      const allElements = document.querySelectorAll('*');
+                      allElements.forEach(el => {
+                        const text = (el.textContent || el.innerText || '').toLowerCase();
+                        const ariaLabel = (el.getAttribute('aria-label') || '').toLowerCase();
+                        const title = (el.getAttribute('title') || '').toLowerCase();
+                        
+                        if (
+                          (text.includes('download') || text.includes('descargar')) &&
+                          (el.tagName === 'BUTTON' || el.tagName === 'A' || el.getAttribute('role') === 'button')
+                        ) {
+                          el.style.setProperty('display', 'none', 'important');
+                          el.remove();
+                        }
+                      });
+                    };
+                    
+                    // Ejecutar inmediatamente y cada segundo
+                    hideDownloadButtons();
+                    setInterval(hideDownloadButtons, 1000);
+                    
+                    // Observar cambios en el DOM
+                    const observer = new MutationObserver(hideDownloadButtons);
+                    observer.observe(document.body, {
+                      childList: true,
+                      subtree: true,
+                      attributes: true
+                    });
+                    
+                    // Bloquear menú contextual
+                    document.addEventListener('contextmenu', e => e.preventDefault());
+                    
+                    // Bloquear clicks en enlaces de descarga
+                    document.addEventListener('click', function(e) {
+                      const target = e.target;
+                      const href = target.href || target.closest('a')?.href || '';
+                      
+                      if (href.includes('export=download') || href.includes('uc?export')) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        return false;
+                      }
+                    }, true);
+                    
+                    console.log('Protección anti-descarga activada');
+                  })();
+                  true;
+                `}
+                injectedJavaScriptBeforeContentLoaded={`
+                  (function() {
+                    // Preparar el DOM antes de que se cargue el contenido
+                    document.addEventListener('DOMContentLoaded', function() {
+                      // Crear estilos CSS para ocultar botones de descarga
+                      const style = document.createElement('style');
+                      style.textContent = \`
+                        [aria-label*="Download"],
+                        [aria-label*="Descargar"],
+                        [download],
+                        a[href*="export=download"],
+                        button[aria-label*="download" i],
+                        [role="button"][aria-label*="download"] {
+                          display: none !important;
+                          visibility: hidden !important;
+                          opacity: 0 !important;
+                        }
+                      \`;
+                      document.head.appendChild(style);
+                    });
+                  })();
+                  true;
+                `}
+                javaScriptEnabled={true}
+                domStorageEnabled={true}
+                startInLoadingState={true}
+                allowsInlineMediaPlayback={true}
+                mediaPlaybackRequiresUserAction={false}
+                originWhitelist={[
+                  'https://drive.google.com',
+                  'https://*.googleusercontent.com',
+                  'https://*.gstatic.com',
+                  'https://*.google.com'
+                ]}
+                mixedContentMode="always"
+                scalesPageToFit={true}
+                bounces={false}
+                scrollEnabled={true}
+              />
+            ) : null}
+          </View>
+        </SafeAreaView>
+      </Modal>
     </SafeAreaView>
   );
 }
