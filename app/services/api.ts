@@ -1,124 +1,114 @@
 import axios from 'axios';
 import * as SecureStore from 'expo-secure-store';
 
+const API_URL = 'https://tecniflux-production.up.railway.app/api';
+
 const api = axios.create({
-  baseURL: 'https://tecniflux-production.up.railway.app',
-  timeout: 10000,
+  baseURL: API_URL,
+  timeout: 30000,
   headers: {
     'Content-Type': 'application/json',
   },
-  withCredentials: true,
 });
 
-// Interceptor para incluir token en todas las requests
+// Request interceptor para agregar el token
 api.interceptors.request.use(
   async (config) => {
     const token = await SecureStore.getItemAsync('userToken');
-    console.log('[API Interceptor] Token leído:', token ? `${token.substring(0, 20)}...` : 'NO HAY TOKEN');
-    console.log('[API Interceptor] URL:', config.url);
+    
     if (token) {
+      console.log('[API Interceptor] 🔑 Token COMPLETO:', token);
+      console.log('[API Interceptor] 📏 Token length:', token.length);
+      console.log('[API Interceptor] 🎯 Primeros 50 chars:', token.substring(0, 50));
+      console.log('[API Interceptor] 🎯 Últimos 50 chars:', token.substring(token.length - 50));
       config.headers.Authorization = `Bearer ${token}`;
-      console.log('[API Interceptor] Header Authorization agregado');
+      console.log('[API Interceptor] ✅ Header agregado');
     } else {
-      console.warn('[API Interceptor] ⚠️ No se encontró token en SecureStore');
+      console.warn('[API Interceptor] ⚠️ No se encontró token');
     }
+    
+    console.log('[API Interceptor] URL:', config.url);
     return config;
   },
-  (error) => Promise.reject(error)
+  (error) => {
+    console.error('[API Interceptor] ❌ Error en request:', error);
+    return Promise.reject(error);
+  }
 );
 
-// Servicio de autenticación
+// Response interceptor para manejar errores
+api.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      console.error('[API Interceptor] 🚫 Error 401 - Token rechazado');
+    }
+    return Promise.reject(error);
+  }
+);
+
 export const authAPI = {
-  /**
-   * Inicia sesión con username y password
-   * @param username - Usuario o email
-   * @param password - Contraseña
-   * @returns Datos del usuario si es exitoso
-   * @throws Error si las credenciales son inválidas
-   */
   login: async (username: string, password: string) => {
-    try {
-      console.log('[authAPI.login] Iniciando login para:', username);
-      const response = await api.post('/api/auth/login', {
-        username,
-        password,
-      });
-      
-      console.log('[authAPI.login] Respuesta recibida:', {
-        hasToken: !!response.data.token,
-        hasUser: !!response.data.user,
-        tokenPreview: response.data.token ? `${response.data.token.substring(0, 20)}...` : 'NO TOKEN',
-        user: response.data.user,
-      });
-      
-      // Guardar token si el backend lo devuelve
-      if (response.data.token) {
-        console.log('[authAPI.login] Guardando token en SecureStore...');
-        await SecureStore.setItemAsync('userToken', response.data.token);
-        
-        // Verificar que se guardó correctamente
-        const savedToken = await SecureStore.getItemAsync('userToken');
-        if (savedToken === response.data.token) {
-          console.log('[authAPI.login] ✅ Token guardado correctamente');
-        } else {
-          console.error('[authAPI.login] ❌ ERROR: Token no se guardó correctamente');
-        }
-      } else {
-        console.warn('[authAPI.login] ⚠️ No se recibió token en la respuesta');
+    console.log('[authAPI.login] Iniciando login para:', username);
+    
+    const response = await api.post('/auth/login', { 
+      username, 
+      password 
+    });
+    
+    console.log('[authAPI.login] 📦 Respuesta RAW completa:', JSON.stringify(response.data, null, 2));
+    
+    // CRÍTICO: Verificar qué campo tiene el token
+    const tokenFields = ['token', 'accessToken', 'access_token', 'jwt', 'authToken'];
+    let actualToken = null;
+    
+    for (const field of tokenFields) {
+      if (response.data[field]) {
+        actualToken = response.data[field];
+        console.log(`[authAPI.login] ✅ Token encontrado en campo: "${field}"`);
+        console.log(`[authAPI.login] 📏 Token length: ${actualToken.length}`);
+        console.log(`[authAPI.login] 🔑 Token completo: ${actualToken}`);
+        break;
       }
-      
-      // Guardar info del usuario
-      if (response.data.user) {
-        await SecureStore.setItemAsync('userData', JSON.stringify(response.data.user));
-        console.log('[authAPI.login] ✅ Datos de usuario guardados');
-      }
-      
-      return response.data;
-    } catch (error: any) {
-      console.error('[authAPI.login] ❌ Error en login:', error);
-      if (error.response) {
-        throw new Error(error.response.data?.message || 'Error al iniciar sesión');
-      }
-      if (error.request) {
-        throw new Error('No se pudo conectar con el servidor');
-      }
-      throw new Error('Error desconocido al iniciar sesión');
     }
+    
+    if (!actualToken) {
+      console.error('[authAPI.login] ❌ NO SE ENCONTRÓ TOKEN en ningún campo');
+      console.error('[authAPI.login] Campos disponibles:', Object.keys(response.data));
+      throw new Error('No se recibió token del servidor');
+    }
+    
+    // Guardar el token completo
+    console.log('[authAPI.login] Guardando token en SecureStore...');
+    await SecureStore.setItemAsync('userToken', actualToken);
+    
+    // Verificar que se guardó correctamente
+    const savedToken = await SecureStore.getItemAsync('userToken');
+    console.log('[authAPI.login] ✅ Token guardado correctamente');
+    console.log('[authAPI.login] 🔍 Verificación - Token guardado length:', savedToken?.length);
+    console.log('[authAPI.login] 🔍 ¿Coincide?:', savedToken === actualToken ? 'SÍ' : 'NO');
+    
+    // Guardar datos del usuario
+    if (response.data.user) {
+      await SecureStore.setItemAsync('userData', JSON.stringify(response.data.user));
+      console.log('[authAPI.login] ✅ Datos de usuario guardados');
+    }
+    
+    return response;
   },
   
-  /**
-   * Cierra sesión y limpia el token guardado
-   */
   logout: async () => {
-    try {
-      await SecureStore.deleteItemAsync('userToken');
-      await SecureStore.deleteItemAsync('userData');
-      await api.post('/api/auth/logout');
-    } catch (error) {
-      console.error('Error al cerrar sesión:', error);
-    }
-  },
-  
-  /**
-   * Obtiene el usuario guardado localmente
-   */
-  getCurrentUser: async () => {
-    try {
-      const userData = await SecureStore.getItemAsync('userData');
-      return userData ? JSON.parse(userData) : null;
-    } catch (error) {
-      console.error('Error al obtener usuario:', error);
-      return null;
-    }
-  },
-  
-  /**
-   * Verifica si hay una sesión activa
-   */
-  isAuthenticated: async () => {
-    const token = await SecureStore.getItemAsync('userToken');
-    return !!token;
-  },
+    await SecureStore.deleteItemAsync('userToken');
+    await SecureStore.deleteItemAsync('userData');
+  }
+};
+
+export const diagramAPI = {
+  search: async (query: string) => {
+    console.log('[diagramAPI.search] 🔍 Buscando:', query);
+    const response = await api.post('/diagrams/search', { query });
+    return response;
+  }
 };
 
 export default api;

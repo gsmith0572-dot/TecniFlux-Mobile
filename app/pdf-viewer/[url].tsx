@@ -22,21 +22,6 @@ export default function PDFViewerScreen() {
     return () => clearTimeout(timeout);
   }, [loading]);
 
-  const handleClose = () => {
-    console.log('[PDF Viewer] 🔴 Botón X presionado - Intentando cerrar');
-    
-    // Método 1: Usar dismiss si existe
-    if (router.dismiss) {
-      console.log('[PDF Viewer] Usando router.dismiss()');
-      router.dismiss();
-      return;
-    }
-    
-    // Método 2: Navigate directamente
-    console.log('[PDF Viewer] Navegando a /search');
-    router.navigate('/search');
-  };
-
   const handleShouldStartLoadWithRequest = (request: any) => {
     const url = request.url.toLowerCase();
     
@@ -99,7 +84,10 @@ export default function PDFViewerScreen() {
           No pudimos cargar el diagrama. Verifica tu conexión.
         </Text>
         <TouchableOpacity
-          onPress={handleClose}
+          onPress={() => {
+            console.log('[PDF Viewer] 🔴 Volviendo desde pantalla de error');
+            router.navigate('/search');
+          }}
           className="mt-6 bg-cyan-500 px-6 py-3 rounded-lg"
         >
           <Text className="text-white font-bold">Volver</Text>
@@ -110,20 +98,41 @@ export default function PDFViewerScreen() {
 
   return (
     <View className="flex-1 bg-slate-900">
+      {/* Header */}
       <View className="bg-slate-800 pt-12 pb-4 px-4 flex-row items-center justify-between">
         <Text className="text-white text-xl font-bold">Diagrama PDF</Text>
-        <TouchableOpacity 
-          onPress={handleClose}
-          hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
-          activeOpacity={0.6}
-          style={{ 
-            padding: 8,
-            backgroundColor: 'rgba(255,255,255,0.1)',
-            borderRadius: 8
-          }}
-        >
-          <X size={28} color="#ffffff" strokeWidth={2.5} />
-        </TouchableOpacity>
+        
+        {/* Botón X - MÁS GRANDE Y ROJO */}
+        <View style={{ 
+          width: 60, 
+          height: 60, 
+          justifyContent: 'center', 
+          alignItems: 'center',
+          position: 'absolute',
+          right: 10,
+          top: 40
+        }}>
+          <TouchableOpacity 
+            onPress={() => {
+              console.log('[PDF Viewer] 🔴 TOQUE DETECTADO EN X');
+              console.log('[PDF Viewer] Intentando cerrar viewer');
+              router.navigate('/search');
+            }}
+            activeOpacity={0.6}
+            style={{ 
+              width: 50,
+              height: 50,
+              backgroundColor: 'rgba(239, 68, 68, 0.9)',
+              borderRadius: 25,
+              justifyContent: 'center',
+              alignItems: 'center',
+              borderWidth: 2,
+              borderColor: '#ffffff'
+            }}
+          >
+            <X size={28} color="#ffffff" strokeWidth={3} />
+          </TouchableOpacity>
+        </View>
       </View>
 
       <WebView
