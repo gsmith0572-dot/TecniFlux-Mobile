@@ -1,4 +1,4 @@
-import { View, Text, TouchableOpacity, ActivityIndicator, ScrollView, Modal, Dimensions } from 'react-native';
+import { View, Text, TouchableOpacity, ActivityIndicator, ScrollView, Modal, Dimensions, BackHandler } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { useRouter, useLocalSearchParams } from 'expo-router';
@@ -161,6 +161,31 @@ export default function DiagramDetailScreen() {
     };
   }, [showPDF, loadTimeout]);
 
+  // BackHandler para botón físico de Android
+  useEffect(() => {
+    if (!showPDF) return;
+
+    const backHandler = BackHandler.addEventListener('hardwareBackPress', () => {
+      console.log('[PDF Viewer] BackHandler - cerrando viewer');
+      handleClosePDF();
+      return true;
+    });
+
+    return () => backHandler.remove();
+  }, [showPDF]);
+
+  // Función para cerrar el PDF viewer
+  const handleClosePDF = () => {
+    console.log('[PDF Viewer] 🔴 handleClosePDF - Cerrando viewer');
+    if (loadTimeout) {
+      clearTimeout(loadTimeout);
+      setLoadTimeout(null);
+    }
+    setShowPDF(false);
+    setPdfUrl(null);
+    router.back();
+  };
+
   const getSystemLabel = (system: string) => {
     const systems: Record<string, string> = {
       MOTOR: 'Motor',
@@ -306,7 +331,7 @@ export default function DiagramDetailScreen() {
         visible={showPDF}
         animationType="slide"
         presentationStyle="fullScreen"
-        onRequestClose={() => router.back()}
+        onRequestClose={handleClosePDF}
       >
         <SafeAreaView className="flex-1 bg-slate-900">
           <StatusBar style="light" />
@@ -314,13 +339,22 @@ export default function DiagramDetailScreen() {
           {/* Header del modal */}
           <View className="px-4 py-3 flex-row items-center justify-between border-b border-slate-800 bg-slate-900">
             <Text className="text-white text-lg font-bold flex-1">Diagrama PDF</Text>
-            <TouchableOpacity
-              onPress={() => router.back()}
-              hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+            <TouchableOpacity 
+              onPress={() => {
+                console.log('[PDF Viewer] 🔴 Botón X presionado - Cerrando viewer');
+                if (loadTimeout) {
+                  clearTimeout(loadTimeout);
+                  setLoadTimeout(null);
+                }
+                setShowPDF(false);
+                setPdfUrl(null);
+                router.back();
+              }}
               className="p-2"
+              hitSlop={{ top: 20, bottom: 20, left: 20, right: 20 }}
               activeOpacity={0.7}
             >
-              <X size={28} color="white" />
+              <X size={28} color="#ffffff" strokeWidth={2.5} />
             </TouchableOpacity>
           </View>
 
@@ -394,191 +428,77 @@ export default function DiagramDetailScreen() {
                     setLoadTimeout(null);
                   }
                 }}
-                // Interceptar y bloquear navegación a URLs de descarga
+                // BLOQUEAR URLs de descarga y /view que permite descargar
                 onShouldStartLoadWithRequest={(request) => {
-                  const url = request.url.toLowerCase();
-                  console.log('[WebView] Request URL:', request.url);
+                  const url = request.url;
+                  console.log('[WebView] Request URL:', url);
                   
-                  // URLs especiales que siempre deben permitirse
-                  if (url === 'about:blank' || url.startsWith('about:')) {
-                    console.log('[WebView] ✅ Permitida URL especial (about:blank)');
+                  // URLs especiales que siempre se permiten
+                  if (url === 'about:blank' || url.startsWith('about:') || url.startsWith('data:') || url.startsWith('blob:')) {
+                    console.log('[WebView] ✅ Permitida URL especial:', url);
                     return true;
                   }
                   
-                  // Patrones de URLs de descarga a bloquear (más específicos)
-                  const downloadPatterns = [
-                    '/uc?export=download',  // Descarga directa
-                    'export=download&',     // Parámetro de descarga
-                    'download=true',        // Flag de descarga
-                    'force=true',           // Forzar descarga
-                    '/file/d/.*/view[^?]*$', // Vista completa (no preview)
-                    '/file/d/.*/edit',      // Edición
-                  ];
-                  
-                  // Verificar si la URL contiene patrones de descarga
-                  const isDownloadUrl = downloadPatterns.some(pattern => {
-                    const regex = new RegExp(pattern, 'i');
-                    return regex.test(url);
-                  });
-                  
-                  if (isDownloadUrl) {
-                    console.warn('[WebView] ⚠️ Bloqueada URL de descarga:', request.url);
-                    return false; // Bloquear navegación
-                  }
-                  
-                  // Permitir URLs de Google necesarias para el funcionamiento
-                  const allowedPatterns = [
-                    'drive.google.com/file/d/.*/preview',  // Preview del PDF
-                    'drive.google.com/file/d/.*/view',      // Vista (solo si no es descarga)
-                    'googleusercontent.com',                // Contenido de Google
-                    'gstatic.com',                          // Recursos estáticos
-                    'google.com/recaptcha',                 // reCAPTCHA
-                    'google.com/accounts',                  // Autenticación
-                    'google.com/auth',                      // Autenticación
-                    'accounts.google.com',                   // Cuentas de Google
-                    'auth_warmup',                          // Warmup de autenticación
-                    'googleapis.com',                        // APIs de Google
-                    'googletagmanager.com',                  // Tag Manager
-                    'doubleclick.net',                       // Servicios de Google
-                    'google-analytics.com',                  // Analytics
-                    'googleadservices.com',                  // Ad Services
-                  ];
-                  
-                  const isAllowed = allowedPatterns.some(pattern => {
-                    const regex = new RegExp(pattern, 'i');
-                    return regex.test(url);
-                  });
-                  
-                  // Permitir también URLs relativas o del mismo origen
-                  if (url.startsWith('data:') || url.startsWith('blob:') || url.startsWith('javascript:')) {
-                    console.log('[WebView] ✅ Permitida URL de datos/blob');
-                    return true;
-                  }
-                  
-                  if (!isAllowed) {
-                    // Si es una URL de Google Drive pero no coincide con patrones, verificar que no sea descarga
-                    if (url.includes('drive.google.com')) {
-                      // Permitir si no es una URL de descarga explícita
-                      if (!url.includes('export=download') && !url.includes('download=true')) {
-                        console.log('[WebView] ✅ Permitida URL de Google Drive (navegación interna)');
-                        return true;
-                      }
-                    }
-                    
-                    console.warn('[WebView] ⚠️ Bloqueada URL no permitida:', request.url);
+                  // BLOQUEAR /view específicamente PRIMERO (abre página con descarga)
+                  // Solo permitir /preview, NO /view
+                  if (url.includes('/view') && !url.includes('/preview')) {
+                    console.log('[WebView] 🚫 BLOQUEADO - URL /view (permite descarga):', url);
                     return false;
                   }
                   
-                  console.log('[WebView] ✅ Permitida URL:', request.url);
-                  return true; // Permitir navegación
+                  // BLOQUEAR URLs de descarga
+                  const blockedPatterns = [
+                    '/uc?export=download',
+                    '/uc?id=',
+                    'usercontent.google.com/download',
+                    '/export=download',
+                    'download=true'
+                  ];
+                  
+                  const isBlocked = blockedPatterns.some(pattern => url.includes(pattern));
+                  if (isBlocked) {
+                    console.log('[WebView] 🚫 BLOQUEADO - Intento de descarga:', url);
+                    return false;
+                  }
+                  
+                  // PERMITIR solo URLs necesarias para /preview
+                  const allowedPatterns = [
+                    'drive.google.com/file/d/',  // Solo si tiene /preview
+                    'drive.google.com/auth',
+                    'clients6.google.com',
+                    'accounts.google.com',
+                    'ssl.gstatic.com',
+                    'fonts.googleapis.com',
+                    'googleusercontent.com',
+                    'gstatic.com',
+                    'googleapis.com',
+                    'googletagmanager.com',
+                    'doubleclick.net',
+                    'google-analytics.com',
+                    'googleadservices.com'
+                  ];
+                  
+                  const isAllowed = allowedPatterns.some(pattern => url.includes(pattern));
+                  
+                  if (isAllowed) {
+                    // Solo permitir si es /preview, no /view
+                    if (url.includes('/preview')) {
+                      console.log('[WebView] ✅ Permitida URL /preview:', url);
+                      return true;
+                    } else if (url.includes('drive.google.com/file/d/')) {
+                      // Si contiene file/d/ pero no tiene /preview ni /view, podría ser navegación interna
+                      console.log('[WebView] ✅ Permitida URL de Google Drive (navegación interna):', url);
+                      return true;
+                    } else {
+                      console.log('[WebView] ✅ Permitida URL de Google (recursos):', url);
+                      return true;
+                    }
+                  }
+                  
+                  // Por defecto, bloquear
+                  console.log('[WebView] 🚫 BLOQUEADO por defecto:', url);
+                  return false;
                 }}
-                // JavaScript para ocultar completamente botones de descarga
-                injectedJavaScript={`
-                  (function() {
-                    // Función para ocultar botones de descarga completamente
-                    const hideDownloadButtons = () => {
-                      // Seleccionar todos los botones de descarga
-                      const downloadButtons = document.querySelectorAll(
-                        '[aria-label*="Download"], [aria-label*="Descargar"], ' +
-                        '[download], a[href*="export=download"], ' +
-                        'button[aria-label*="download" i], ' +
-                        '[role="button"][aria-label*="download"]'
-                      );
-                      
-                      downloadButtons.forEach(btn => {
-                        btn.style.setProperty('display', 'none', 'important');
-                        btn.style.setProperty('visibility', 'hidden', 'important');
-                        btn.style.setProperty('opacity', '0', 'important');
-                        btn.disabled = true;
-                        btn.remove();
-                      });
-                      
-                      // También ocultar iconos de descarga
-                      const downloadIcons = document.querySelectorAll(
-                        'svg path[d*="download"], ' +
-                        '.download-icon, ' +
-                        '[class*="download"]'
-                      );
-                      
-                      downloadIcons.forEach(icon => {
-                        const parent = icon.closest('button, a, [role="button"]');
-                        if (parent) {
-                          parent.style.setProperty('display', 'none', 'important');
-                          parent.remove();
-                        }
-                      });
-                      
-                      // Ocultar cualquier elemento con texto "Download" o "Descargar"
-                      const allElements = document.querySelectorAll('*');
-                      allElements.forEach(el => {
-                        const text = (el.textContent || el.innerText || '').toLowerCase();
-                        const ariaLabel = (el.getAttribute('aria-label') || '').toLowerCase();
-                        const title = (el.getAttribute('title') || '').toLowerCase();
-                        
-                        if (
-                          (text.includes('download') || text.includes('descargar')) &&
-                          (el.tagName === 'BUTTON' || el.tagName === 'A' || el.getAttribute('role') === 'button')
-                        ) {
-                          el.style.setProperty('display', 'none', 'important');
-                          el.remove();
-                        }
-                      });
-                    };
-                    
-                    // Ejecutar inmediatamente y cada segundo
-                    hideDownloadButtons();
-                    setInterval(hideDownloadButtons, 1000);
-                    
-                    // Observar cambios en el DOM
-                    const observer = new MutationObserver(hideDownloadButtons);
-                    observer.observe(document.body, {
-                      childList: true,
-                      subtree: true,
-                      attributes: true
-                    });
-                    
-                    // Bloquear menú contextual
-                    document.addEventListener('contextmenu', e => e.preventDefault());
-                    
-                    // Bloquear clicks en enlaces de descarga
-                    document.addEventListener('click', function(e) {
-                      const target = e.target;
-                      const href = target.href || target.closest('a')?.href || '';
-                      
-                      if (href.includes('export=download') || href.includes('uc?export')) {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        return false;
-                      }
-                    }, true);
-                    
-                    console.log('Protección anti-descarga activada');
-                  })();
-                  true;
-                `}
-                injectedJavaScriptBeforeContentLoaded={`
-                  (function() {
-                    // Preparar el DOM antes de que se cargue el contenido
-                    document.addEventListener('DOMContentLoaded', function() {
-                      // Crear estilos CSS para ocultar botones de descarga
-                      const style = document.createElement('style');
-                      style.textContent = \`
-                        [aria-label*="Download"],
-                        [aria-label*="Descargar"],
-                        [download],
-                        a[href*="export=download"],
-                        button[aria-label*="download" i],
-                        [role="button"][aria-label*="download"] {
-                          display: none !important;
-                          visibility: hidden !important;
-                          opacity: 0 !important;
-                        }
-                      \`;
-                      document.head.appendChild(style);
-                    });
-                  })();
-                  true;
-                `}
                 javaScriptEnabled={true}
                 domStorageEnabled={true}
                 startInLoadingState={true}
