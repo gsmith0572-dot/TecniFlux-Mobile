@@ -39,34 +39,53 @@ export default function PDFViewerScreen() {
       style.textContent = '* { touch-action: pan-x pan-y pinch-zoom !important; -webkit-user-select: text !important; user-select: text !important; }';
       document.head.appendChild(style);
       
-      // Ocultar botón negro cuadrado con flecha (botón de compartir/abrir externamente)
+      // Ocultar SOLO el botón de compartir/abrir de Google Drive (muy específico y seguro)
       const hideShareButton = setInterval(() => {
-        // Buscar y ocultar botones de compartir/abrir
-        const shareButtons = document.querySelectorAll('[aria-label*="Abrir"], [aria-label*="Open"], [aria-label*="Share"], button[title*="Abrir"], button[title*="Open"], .ndfHFb, .ndfHFb-c4YZDc, [data-tooltip*="Abrir"], [data-tooltip*="Open"]');
-        shareButtons.forEach(btn => {
-          if (btn) {
-            btn.style.display = 'none';
-            btn.style.visibility = 'hidden';
-            btn.style.opacity = '0';
-            btn.style.pointerEvents = 'none';
-          }
-        });
-        
-        // Buscar elementos con ícono de flecha diagonal
-        const arrowButtons = document.querySelectorAll('svg[viewBox*="24"], svg[viewBox*="20"]');
-        arrowButtons.forEach(svg => {
-          const parent = svg.closest('button, div[role="button"], a');
-          if (parent && (parent.getAttribute('aria-label')?.includes('Abrir') || parent.getAttribute('aria-label')?.includes('Open') || parent.getAttribute('title')?.includes('Abrir') || parent.getAttribute('title')?.includes('Open'))) {
-            parent.style.display = 'none';
-            parent.style.visibility = 'hidden';
-            parent.style.opacity = '0';
-            parent.style.pointerEvents = 'none';
-          }
-        });
-      }, 500);
+        try {
+          // Buscar SOLO botones en la barra de herramientas de Google Drive
+          // Excluir explícitamente cualquier cosa dentro de iframes o el contenido del PDF
+          const allButtons = document.querySelectorAll('button, div[role="button"], a[role="button"]');
+          
+          allButtons.forEach(btn => {
+            // EXCLUIR: cualquier botón dentro de iframe, embed, o contenido del PDF
+            if (btn.closest('iframe, embed, object, [id*="pdf"], [class*="pdf"], [id*="content"], [class*="content"]')) {
+              return; // Saltar este botón
+            }
+            
+            // Solo procesar botones que están en la toolbar de Google Drive
+            const toolbar = btn.closest('[role="toolbar"], .ndfHFb-c4YZDc, [jsname="V68bde"], [class*="toolbar"]');
+            if (!toolbar) {
+              return; // Saltar si no está en una toolbar
+            }
+            
+            // Verificar aria-label o title para identificar el botón de "abrir en nueva ventana"
+            const ariaLabel = (btn.getAttribute('aria-label') || '').toLowerCase();
+            const title = (btn.getAttribute('title') || '').toLowerCase();
+            const dataTooltip = (btn.getAttribute('data-tooltip') || '').toLowerCase();
+            
+            // Solo ocultar si tiene texto relacionado con "abrir" o "open" en nueva ventana
+            if (ariaLabel.includes('abrir en una ventana nueva') || 
+                ariaLabel.includes('open in new window') ||
+                ariaLabel.includes('abrir en nueva ventana') ||
+                title.includes('abrir en una ventana nueva') ||
+                title.includes('open in new window') ||
+                dataTooltip.includes('abrir en una ventana nueva') ||
+                dataTooltip.includes('open in new window')) {
+              
+              // Ocultar el botón
+              btn.style.display = 'none';
+              btn.style.visibility = 'hidden';
+              btn.style.opacity = '0';
+              btn.style.pointerEvents = 'none';
+            }
+          });
+        } catch (e) {
+          console.log('Error ocultando botón:', e);
+        }
+      }, 1000);
       
-      // Limpiar intervalo después de 10 segundos
-      setTimeout(() => clearInterval(hideShareButton), 10000);
+      // Limpiar intervalo después de 15 segundos
+      setTimeout(() => clearInterval(hideShareButton), 15000);
       
       true;
     })();
