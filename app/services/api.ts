@@ -125,18 +125,69 @@ export const authAPI = {
       }
     }
     
+    // Si no hay token en la respuesta, hacer login automático para obtenerlo
     if (!actualToken) {
-      console.error('[authAPI.register] ❌ NO SE ENCONTRÓ TOKEN');
-      throw new Error('No se recibió token del servidor');
+      console.log('[authAPI.register] ⚠️ No se recibió token en registro, haciendo login automático...');
+      try {
+        // Hacer login automático con las credenciales del usuario
+        const loginResponse = await api.post('/auth/login', {
+          username: username.trim(),
+          password
+        });
+        
+        console.log('[authAPI.register] 📦 Respuesta de login:', JSON.stringify(loginResponse.data, null, 2));
+        
+        // Buscar token en la respuesta de login
+        for (const field of tokenFields) {
+          if (loginResponse.data[field]) {
+            actualToken = loginResponse.data[field];
+            console.log(`[authAPI.register] ✅ Token obtenido del login en campo: "${field}"`);
+            break;
+          }
+        }
+        
+        if (!actualToken) {
+          console.error('[authAPI.register] ❌ NO SE ENCONTRÓ TOKEN después del login automático');
+          throw new Error('No se pudo obtener token después del registro');
+        }
+        
+        // Guardar datos del usuario desde la respuesta de registro
+        if (response.data.id || response.data.username) {
+          const userData = {
+            id: response.data.id,
+            username: response.data.username?.trim() || username.trim(),
+            email: response.data.email || email,
+            role: response.data.role || 'tecnico'
+          };
+          await SecureStore.setItemAsync('userData', JSON.stringify(userData));
+          console.log('[authAPI.register] ✅ Datos de usuario guardados desde registro');
+        }
+      } catch (loginError: any) {
+        console.error('[authAPI.register] ❌ Error en login automático:', loginError);
+        throw new Error('Cuenta creada pero no se pudo iniciar sesión automáticamente. Por favor inicia sesión manualmente.');
+      }
+    } else {
+      // Si hay token, guardar datos del usuario normalmente
+      if (response.data.user) {
+        await SecureStore.setItemAsync('userData', JSON.stringify(response.data.user));
+      } else if (response.data.id || response.data.username) {
+        const userData = {
+          id: response.data.id,
+          username: response.data.username?.trim() || username.trim(),
+          email: response.data.email || email,
+          role: response.data.role || 'tecnico'
+        };
+        await SecureStore.setItemAsync('userData', JSON.stringify(userData));
+      }
     }
     
     // Guardar token
     await SecureStore.setItemAsync('userToken', actualToken);
+    console.log('[authAPI.register] ✅ Token guardado correctamente');
     
-    // Guardar datos del usuario
-    if (response.data.user) {
-      await SecureStore.setItemAsync('userData', JSON.stringify(response.data.user));
-    }
+    // Borrar caché de subscription para forzar actualización
+    await SecureStore.deleteItemAsync('userSubscription');
+    console.log('[authAPI.register] ✅ Caché de subscription borrado');
     
     return response;
   },
