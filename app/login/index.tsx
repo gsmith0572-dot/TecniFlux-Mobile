@@ -19,7 +19,7 @@ export default function LoginScreen() {
     try {
       const token = await SecureStore.getItemAsync('userToken');
       if (token) {
-        router.replace('/search');
+        router.replace('/dashboard');
       }
     } catch (error) {
       console.log('[Login] No existing token');
@@ -36,7 +36,8 @@ export default function LoginScreen() {
 
     try {
       await authAPI.login(username, password);
-      router.replace('/search');
+      // Redirigir a dashboard (que verificará la suscripción)
+      router.replace('/dashboard');
     } catch (error: any) {
       Alert.alert('Error de autenticación', 'Usuario o contraseña incorrectos');
     } finally {
@@ -90,6 +91,17 @@ export default function LoginScreen() {
         >
           <Text className="text-white text-center font-bold text-lg">
             {loading ? 'Iniciando sesión...' : 'Iniciar Sesión'}
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          onPress={() => router.push('/register')}
+          disabled={loading}
+          className="mt-4"
+          activeOpacity={0.8}
+        >
+          <Text className="text-cyan-400 text-center text-sm">
+            ¿No tienes cuenta? <Text className="font-bold">Crear Cuenta</Text>
           </Text>
         </TouchableOpacity>
 

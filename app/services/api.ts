@@ -1,5 +1,6 @@
 import axios from 'axios';
 import * as SecureStore from 'expo-secure-store';
+import { UserSubscription, CheckoutSession } from '../../types/subscription';
 
 const API_URL = 'https://tecniflux-production.up.railway.app/api';
 
@@ -94,6 +95,49 @@ export const authAPI = {
       console.log('[authAPI.login] ✅ Datos de usuario guardados');
     }
     
+    // Borrar caché de subscription para forzar actualización desde backend
+    await SecureStore.deleteItemAsync('userSubscription');
+    console.log('[authAPI.login] ✅ Caché de subscription borrado');
+    
+    return response;
+  },
+
+  register: async (username: string, email: string, password: string) => {
+    console.log('[authAPI.register] Registrando nuevo usuario:', username);
+    
+    const response = await api.post('/auth/register', {
+      username,
+      email,
+      password
+    });
+    
+    console.log('[authAPI.register] 📦 Respuesta:', JSON.stringify(response.data, null, 2));
+    
+    // Verificar token en respuesta
+    const tokenFields = ['token', 'accessToken', 'access_token', 'jwt', 'authToken'];
+    let actualToken = null;
+    
+    for (const field of tokenFields) {
+      if (response.data[field]) {
+        actualToken = response.data[field];
+        console.log(`[authAPI.register] ✅ Token encontrado en campo: "${field}"`);
+        break;
+      }
+    }
+    
+    if (!actualToken) {
+      console.error('[authAPI.register] ❌ NO SE ENCONTRÓ TOKEN');
+      throw new Error('No se recibió token del servidor');
+    }
+    
+    // Guardar token
+    await SecureStore.setItemAsync('userToken', actualToken);
+    
+    // Guardar datos del usuario
+    if (response.data.user) {
+      await SecureStore.setItemAsync('userData', JSON.stringify(response.data.user));
+    }
+    
     return response;
   },
   
@@ -109,6 +153,99 @@ export const diagramAPI = {
     const response = await api.post('/diagrams/search', { query });
     return response;
   }
+};
+
+export const subscriptionAPI = {
+  getStatus: async (): Promise<UserSubscription> => {
+    console.log('[subscriptionAPI] Verificando estado de suscripción');
+    try {
+      // Intentar obtener desde SecureStore primero
+      const cachedSubscription = await SecureStore.getItemAsync('userSubscription');
+      if (cachedSubscription) {
+        const parsed = JSON.parse(cachedSubscription);
+        console.log('[subscriptionAPI] ✅ Suscripción desde cache:', parsed);
+        return parsed;
+      }
+
+      // Intentar obtener del backend
+      const response = await api.get('/user/subscription');
+      console.log('[subscriptionAPI] ✅ Estado de suscripción desde backend:', response.data);
+      
+      const subscription = {
+        plan: response.data.plan || 'free',
+        status: response.data.status || 'active',
+        currentPeriodEnd: response.data.currentPeriodEnd || new Date(Date.now() + 30*24*60*60*1000).toISOString(),
+        cancelAtPeriodEnd: response.data.cancelAtPeriodEnd || false,
+      };
+
+      // Guardar en SecureStore
+      await SecureStore.setItemAsync('userSubscription', JSON.stringify(subscription));
+      
+      return subscription;
+    } catch (error: any) {
+      console.error('[subscriptionAPI] ❌ Error al obtener estado:', error);
+      
+      // Si el endpoint no existe o hay error, usar mock con plan FREE
+      const mockSubscription = {
+        plan: 'free',
+        status: 'active',
+        currentPeriodEnd: new Date(Date.now() + 30*24*60*60*1000).toISOString(),
+        cancelAtPeriodEnd: false,
+      };
+      
+      // Guardar mock en SecureStore
+      await SecureStore.setItemAsync('userSubscription', JSON.stringify(mockSubscription));
+      console.log('[subscriptionAPI] ✅ Usando plan FREE por defecto');
+      
+      return mockSubscription;
+    }
+  },
+
+  getSubscriptionStatus: async (): Promise<UserSubscription> => {
+    // Mantener compatibilidad con código existente
+    return subscriptionAPI.getStatus();
+  },
+
+  createCheckoutSession: async (planId: string): Promise<CheckoutSession> => {
+    console.log('[subscriptionAPI] Creando checkout session para plan:', planId);
+    try {
+      const response = await api.post('/create-subscription', { planId });
+      console.log('[subscriptionAPI] ✅ Checkout session creada:', response.data);
+      
+      return {
+        sessionId: response.data.sessionId || response.data.id,
+        url: response.data.url || response.data.checkoutUrl,
+      };
+    } catch (error: any) {
+      console.error('[subscriptionAPI] ❌ Error al crear checkout:', error);
+      throw error;
+    }
+  },
+
+  createCheckout: async (planId: string): Promise<CheckoutSession> => {
+    // Mantener compatibilidad con código existente
+    return subscriptionAPI.createCheckoutSession(planId);
+  },
+
+  cancelSubscription: async (): Promise<void> => {
+    console.log('[subscriptionAPI] Cancelando suscripción');
+    const response = await api.post('/subscription/cancel');
+    console.log('[subscriptionAPI] ✅ Suscripción cancelada:', response.data);
+  },
+};
+
+export const adminAPI = {
+  getStats: async () => {
+    console.log('[adminAPI] Obteniendo estadísticas de administración');
+    try {
+      const response = await api.get('/admin/stats');
+      console.log('[adminAPI] ✅ Estadísticas obtenidas:', response.data);
+      return response.data;
+    } catch (error: any) {
+      console.error('[adminAPI] ❌ Error al obtener estadísticas:', error);
+      throw error;
+    }
+  },
 };
 
 export default api;

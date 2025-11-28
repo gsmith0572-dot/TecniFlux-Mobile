@@ -1,11 +1,33 @@
+import { useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { Search, ScanBarcode } from 'lucide-react-native';
+import { Search, ScanBarcode, History, Shield } from 'lucide-react-native';
+import SubscriptionBanner from '../../components/SubscriptionBanner';
+import { useSubscription } from '../../hooks/useSubscription';
+import * as SecureStore from 'expo-secure-store';
 
 export default function DashboardScreen() {
   const router = useRouter();
+  const { subscription } = useSubscription();
+  const [isAdmin, setIsAdmin] = useState(false);
+
+  useEffect(() => {
+    checkAdminRole();
+  }, []);
+
+  const checkAdminRole = async () => {
+    try {
+      const userData = await SecureStore.getItemAsync('userData');
+      if (userData) {
+        const user = JSON.parse(userData);
+        setIsAdmin(user.role === 'admin');
+      }
+    } catch (error) {
+      console.error('[Dashboard] Error verificando rol:', error);
+    }
+  };
 
   // Marcas frecuentes (8 marcas para grid 2x4)
   const marcas = [
@@ -47,11 +69,56 @@ export default function DashboardScreen() {
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
         {/* Header */}
         <View className="flex-row justify-between items-center px-6 py-4">
-          <Text className="text-white text-xl font-bold">Hola, George</Text>
-          <View className="bg-yellow-500/20 px-3 py-1 rounded-full border border-yellow-500/30">
-            <Text className="text-yellow-400 text-xs font-bold">PRO</Text>
+          <View className="flex-row items-center gap-3">
+            <Text className="text-white text-xl font-bold">Hola, George</Text>
+          </View>
+          <View className="flex-row items-center gap-3">
+            {isAdmin && (
+              <TouchableOpacity
+                onPress={() => router.push('/admin')}
+                className="bg-purple-500/20 p-2 rounded-lg border border-purple-500/30"
+                activeOpacity={0.8}
+              >
+                <Shield size={20} color="#a855f7" />
+              </TouchableOpacity>
+            )}
+            <TouchableOpacity
+              onPress={() => router.push('/history')}
+              className="bg-slate-800 p-2 rounded-lg border border-slate-700"
+              activeOpacity={0.8}
+            >
+              <History size={20} color="#06b6d4" />
+            </TouchableOpacity>
+            <View 
+              className={`px-3 py-1 rounded-full border ${
+                subscription?.plan === 'pro' 
+                  ? 'bg-purple-500/20 border-purple-500/30' 
+                  : subscription?.plan === 'premium'
+                  ? 'bg-cyan-500/20 border-cyan-500/30'
+                  : subscription?.plan === 'plus'
+                  ? 'bg-amber-500/20 border-amber-500/30'
+                  : 'bg-slate-500/20 border-slate-500/30'
+              }`}
+            >
+              <Text 
+                className={`text-xs font-bold ${
+                  subscription?.plan === 'pro' 
+                    ? 'text-purple-300' 
+                    : subscription?.plan === 'premium'
+                    ? 'text-cyan-300'
+                    : subscription?.plan === 'plus'
+                    ? 'text-amber-300'
+                    : 'text-slate-300'
+                }`}
+              >
+                {subscription?.plan?.toUpperCase() || 'FREE'}
+              </Text>
+            </View>
           </View>
         </View>
+
+        {/* Subscription Banner */}
+        <SubscriptionBanner />
 
         {/* Tarjeta de Búsqueda (Hero) */}
         <View className="mx-6 mt-4 p-6 rounded-2xl bg-slate-800 border border-slate-700">
