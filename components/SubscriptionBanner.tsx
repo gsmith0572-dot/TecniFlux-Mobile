@@ -88,7 +88,7 @@ export default function SubscriptionBanner() {
         <View className="ml-3 flex-1">
           {hasUnlimited ? (
             <View className="flex-row items-center">
-              <Sparkles size={16} color={colors.text.replace('text-', '#').replace('-300', '')} />
+              <Sparkles size={16} color={subscription.plan === 'pro' ? '#a855f7' : subscription.plan === 'premium' ? '#06b6d4' : subscription.plan === 'plus' ? '#f59e0b' : '#94a3b8'} />
               <Text className={`${colors.text} text-sm font-semibold ml-1`}>
                 Búsquedas ilimitadas ✨
               </Text>

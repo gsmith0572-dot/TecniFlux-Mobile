@@ -12,20 +12,8 @@ export default function LoginScreen() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    checkExistingAuth();
-  }, []);
-
-  const checkExistingAuth = async () => {
-    try {
-      const token = await SecureStore.getItemAsync('userToken');
-      if (token) {
-        router.replace('/dashboard');
-      }
-    } catch (error) {
-      console.log('[Login] No existing token');
-    }
-  };
+  // ELIMINADO checkExistingAuth - el index.tsx maneja la redirección inicial
+  // El login SIEMPRE se muestra, y solo redirige después de un login exitoso
 
   const handleLogin = async () => {
     if (!username.trim() || !password.trim()) {
