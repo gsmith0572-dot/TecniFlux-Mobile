@@ -3,7 +3,7 @@ import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, Alert } fr
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { useRouter } from 'expo-router';
-import { ArrowLeft, Users, DollarSign, TrendingUp, BarChart3, UserPlus, Calculator, Receipt } from 'lucide-react-native';
+import { ArrowLeft, Users, DollarSign, TrendingUp, BarChart3, UserPlus, Calculator, Receipt, History } from 'lucide-react-native';
 import * as SecureStore from 'expo-secure-store';
 import { adminAPI } from '../services/api';
 
@@ -22,18 +22,65 @@ interface Subscription {
   status: string;
 }
 
+interface GrossRevenueHistory {
+  date: string;
+  paidUsers: number;
+  totalSubscriptions: number;
+  fixedCosts: number;
+  taxes: number;
+  grossAfterCosts: number;
+}
+
 export default function AdminScreen() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState<AdminStats | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
+  const [revenueHistory, setRevenueHistory] = useState<GrossRevenueHistory[]>([]);
 
   useEffect(() => {
     checkAdminAccess();
     fetchAdminStats();
     fetchSubscriptions();
+    loadRevenueHistory();
   }, []);
+
+  const loadRevenueHistory = () => {
+    // Cargar historial desde SecureStore o API
+    try {
+      // Mock data para desarrollo - en producción esto vendría del backend
+      const mockHistory: GrossRevenueHistory[] = [
+        {
+          date: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString(),
+          paidUsers: 10,
+          totalSubscriptions: 119.90,
+          fixedCosts: 89,
+          taxes: 6.18,
+          grossAfterCosts: 24.72,
+        },
+        {
+          date: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000).toISOString(),
+          paidUsers: 8,
+          totalSubscriptions: 95.92,
+          fixedCosts: 89,
+          taxes: 1.38,
+          grossAfterCosts: 5.54,
+        },
+        {
+          date: new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString(),
+          paidUsers: 15,
+          totalSubscriptions: 179.85,
+          fixedCosts: 89,
+          taxes: 18.17,
+          grossAfterCosts: 72.68,
+        },
+      ];
+      setRevenueHistory(mockHistory);
+    } catch (error) {
+      console.error('[Admin] Error cargando historial:', error);
+    }
+  };
 
   const checkAdminAccess = async () => {
     try {
@@ -219,45 +266,74 @@ export default function AdminScreen() {
             <Calculator size={20} color="#10b981" />
             <Text className="text-white text-xl font-bold ml-2">Gross Revenue</Text>
           </View>
-          <View className="bg-slate-800 rounded-xl p-4 border border-slate-700 mb-6">
+          <View className="bg-slate-800 rounded-xl p-5 border border-slate-700 mb-6">
             {(() => {
               const revenue = calculateGrossRevenue();
               return (
                 <>
-                  <View className="mb-4">
-                    <View className="flex-row justify-between items-center mb-2">
-                      <Text className="text-slate-400 text-sm">Usuarios Pagos</Text>
-                      <Text className="text-white text-lg font-bold">{revenue.paidUsers}</Text>
-                    </View>
-                    <View className="flex-row justify-between items-center mb-2">
-                      <Text className="text-slate-400 text-sm">Total Suscripciones</Text>
-                      <Text className="text-white text-lg font-bold">{formatCurrency(revenue.totalSubscriptions)}</Text>
-                    </View>
-                    <View className="flex-row justify-between items-center mb-2">
-                      <Text className="text-slate-400 text-sm">Costos Fijos</Text>
-                      <Text className="text-red-400 text-lg font-bold">-{formatCurrency(revenue.fixedCosts)}</Text>
-                    </View>
-                    <View className="flex-row justify-between items-center mb-2">
-                      <Text className="text-slate-400 text-sm">Subtotal (Después de Costos)</Text>
-                      <Text className="text-white text-lg font-bold">{formatCurrency(revenue.afterFixedCosts)}</Text>
+                  <View>
+                    <View className="flex-row justify-between items-center mb-3">
+                      <Text className="text-slate-400 text-xs flex-1" numberOfLines={1}>Usuarios Pagos</Text>
+                      <Text className="text-white text-base font-bold ml-2">{revenue.paidUsers}</Text>
                     </View>
                     <View className="flex-row justify-between items-center mb-3">
-                      <Text className="text-slate-400 text-sm">Taxes (20%)</Text>
-                      <Text className="text-red-400 text-lg font-bold">-{formatCurrency(revenue.taxes)}</Text>
+                      <Text className="text-slate-400 text-xs flex-1" numberOfLines={1}>Total Suscripciones</Text>
+                      <Text className="text-white text-base font-bold ml-2" numberOfLines={1}>{formatCurrency(revenue.totalSubscriptions)}</Text>
+                    </View>
+                    <View className="flex-row justify-between items-center mb-3">
+                      <Text className="text-slate-400 text-xs flex-1" numberOfLines={1}>Costos Fijos</Text>
+                      <Text className="text-red-400 text-base font-bold ml-2" numberOfLines={1}>-{formatCurrency(revenue.fixedCosts)}</Text>
+                    </View>
+                    <View className="flex-row justify-between items-center mb-3">
+                      <Text className="text-slate-400 text-xs flex-1" numberOfLines={2}>Subtotal</Text>
+                      <Text className="text-white text-base font-bold ml-2" numberOfLines={1}>{formatCurrency(revenue.afterFixedCosts)}</Text>
+                    </View>
+                    <View className="flex-row justify-between items-center mb-3">
+                      <Text className="text-slate-400 text-xs flex-1" numberOfLines={1}>Taxes (20%)</Text>
+                      <Text className="text-red-400 text-base font-bold ml-2" numberOfLines={1}>-{formatCurrency(revenue.taxes)}</Text>
                     </View>
                     <View className="border-t border-slate-700 pt-3 mt-2">
                       <View className="flex-row justify-between items-center">
-                        <View className="flex-row items-center">
-                          <Receipt size={20} color="#10b981" />
-                          <Text className="text-white text-lg font-bold ml-2">Gross After Costs</Text>
+                        <View className="flex-row items-center flex-1">
+                          <Receipt size={18} color="#10b981" />
+                          <Text className="text-white text-base font-bold ml-2" numberOfLines={1}>Gross After Costs</Text>
                         </View>
-                        <Text className="text-green-400 text-2xl font-bold">{formatCurrency(revenue.grossAfterCosts)}</Text>
+                        <Text className="text-green-400 text-xl font-bold ml-2" numberOfLines={1}>{formatCurrency(revenue.grossAfterCosts)}</Text>
                       </View>
                     </View>
                   </View>
                 </>
               );
             })()}
+          </View>
+        </View>
+
+        {/* Gross Revenue History */}
+        <View className="px-6 mb-6">
+          <View className="flex-row items-center mb-4">
+            <History size={20} color="#10b981" />
+            <Text className="text-white text-xl font-bold ml-2">Historial Gross Revenue</Text>
+          </View>
+          <View className="bg-slate-800 rounded-xl p-4 border border-slate-700">
+            {revenueHistory.length > 0 ? (
+              revenueHistory.map((entry, index) => (
+                <View
+                  key={index}
+                  className="flex-row justify-between items-center py-3 border-b border-slate-700 last:border-b-0"
+                >
+                  <View className="flex-1 mr-2">
+                    <Text className="text-white text-sm font-semibold">{formatDate(entry.date)}</Text>
+                    <Text className="text-slate-400 text-xs">{entry.paidUsers} usuarios</Text>
+                  </View>
+                  <View className="items-end">
+                    <Text className="text-green-400 text-base font-bold">{formatCurrency(entry.grossAfterCosts)}</Text>
+                    <Text className="text-slate-500 text-xs">{formatCurrency(entry.totalSubscriptions)}</Text>
+                  </View>
+                </View>
+              ))
+            ) : (
+              <Text className="text-slate-400 text-sm text-center py-4">No hay historial disponible</Text>
+            )}
           </View>
         </View>
 
