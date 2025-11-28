@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { WebView } from 'react-native-webview';
-import { GestureHandlerRootView, PinchGestureHandler } from 'react-native-gesture-handler';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { X, FileText } from 'lucide-react-native';
 
 export default function PDFViewerScreen() {
@@ -145,34 +145,32 @@ export default function PDFViewerScreen() {
       </View>
 
       <GestureHandlerRootView style={{ flex: 1 }}>
-        <PinchGestureHandler>
-          <WebView
-            source={{ uri: pdfUrl }}
-            onLoadStart={() => {
-              console.log('[WebView] Iniciando carga del PDF desde Google Drive');
-            }}
-            onLoadEnd={() => {
-              console.log('[WebView] PDF cargado completamente');
-              setLoading(false);
-            }}
-            onError={(syntheticEvent) => {
-              const { nativeEvent } = syntheticEvent;
-              console.error('[WebView] Error cargando PDF:', nativeEvent);
-              setError(true);
-              setLoading(false);
-            }}
-            onShouldStartLoadWithRequest={handleShouldStartLoadWithRequest}
-            startInLoadingState={true}
-            scalesPageToFit={true}
-            showsHorizontalScrollIndicator={false}
-            showsVerticalScrollIndicator={false}
-            bounces={true}
-            injectedJavaScript={INJECTED_JAVASCRIPT}
-            style={{ flex: 1, backgroundColor: '#0f172a' }}
-            allowsInlineMediaPlayback={true}
-            mediaPlaybackRequiresUserAction={false}
-          />
-        </PinchGestureHandler>
+        <WebView
+          source={{ uri: pdfUrl }}
+          onLoadStart={() => {
+            console.log('[WebView] Iniciando carga del PDF desde Google Drive');
+          }}
+          onLoadEnd={() => {
+            console.log('[WebView] PDF cargado completamente');
+            setLoading(false);
+          }}
+          onError={(syntheticEvent) => {
+            const { nativeEvent } = syntheticEvent;
+            console.error('[WebView] Error cargando PDF:', nativeEvent);
+            setError(true);
+            setLoading(false);
+          }}
+          onShouldStartLoadWithRequest={handleShouldStartLoadWithRequest}
+          startInLoadingState={true}
+          scalesPageToFit={true}
+          showsHorizontalScrollIndicator={false}
+          showsVerticalScrollIndicator={false}
+          bounces={true}
+          injectedJavaScript={INJECTED_JAVASCRIPT}
+          style={{ flex: 1, backgroundColor: '#0f172a' }}
+          allowsInlineMediaPlayback={true}
+          mediaPlaybackRequiresUserAction={false}
+        />
       </GestureHandlerRootView>
 
       {loading && (
