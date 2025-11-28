@@ -1,6 +1,6 @@
 import axios from 'axios';
 import * as SecureStore from 'expo-secure-store';
-import { UserSubscription, CheckoutSession } from '../../types/subscription';
+import { UserSubscription, CheckoutSession, PlanType } from '../../types/subscription';
 
 const API_URL = 'https://tecniflux-production.up.railway.app/api';
 
@@ -293,9 +293,9 @@ export const subscriptionAPI = {
       console.error('[subscriptionAPI] ❌ Error al obtener estado:', error);
       
       // Si el endpoint no existe o hay error, usar mock con plan FREE
-      const mockSubscription = {
-        plan: 'free',
-        status: 'active',
+      const mockSubscription: UserSubscription = {
+        plan: 'free' as PlanType,
+        status: 'active' as 'active' | 'expired' | 'cancelled' | null,
         currentPeriodEnd: new Date(Date.now() + 30*24*60*60*1000).toISOString(),
         cancelAtPeriodEnd: false,
       };
@@ -371,9 +371,9 @@ export const subscriptionAPI = {
       console.log('[subscriptionAPI] ✅ Verificación de pago exitosa:', response.data);
       
       if (response.data.subscription) {
-        const subscription = {
-          plan: response.data.subscription.plan || 'free',
-          status: response.data.subscription.status || 'active',
+        const subscription: UserSubscription = {
+          plan: (response.data.subscription.plan || 'free') as PlanType,
+          status: (response.data.subscription.status || 'active') as 'active' | 'expired' | 'cancelled' | null,
           currentPeriodEnd: response.data.subscription.currentPeriodEnd || new Date(Date.now() + 30*24*60*60*1000).toISOString(),
           cancelAtPeriodEnd: response.data.subscription.cancelAtPeriodEnd || false,
         };
