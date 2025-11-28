@@ -48,7 +48,6 @@ const PLANS: SubscriptionPlan[] = [
     features: [
       'Búsquedas ilimitadas',
       'Acceso completo a diagramas',
-      'Descarga de PDFs',
       'Sin anuncios',
       'Soporte prioritario 24/7',
     ],
@@ -66,7 +65,6 @@ const PLANS: SubscriptionPlan[] = [
       'Hasta 3 usuarios en la cuenta',
       'Panel de administración',
       'Acceso completo a diagramas',
-      'Descarga de PDFs',
       'Soporte dedicado 24/7',
       'Reportes mensuales de uso',
     ],

@@ -3,7 +3,7 @@ import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { Search, ScanBarcode, History, Shield } from 'lucide-react-native';
+import { Search, ScanBarcode, History, Shield, FileText, Car, Calendar } from 'lucide-react-native';
 import SubscriptionBanner from '../../components/SubscriptionBanner';
 import { useSubscription } from '../../hooks/useSubscription';
 import * as SecureStore from 'expo-secure-store';
@@ -29,32 +29,11 @@ export default function DashboardScreen() {
     }
   };
 
-  // Marcas frecuentes (8 marcas para grid 2x4)
-  const marcas = [
-    'Toyota',
-    'Honda',
-    'Ford',
-    'Chevrolet',
-    'BMW',
-    'Mercedes',
-    'Nissan',
-    'Audi',
-  ];
-
   // 1. Función para ir a búsqueda general (cuando tocas la barra)
   const handleSearch = () => {
     router.push({
       pathname: '/search',
       params: { q: '' } // Envía búsqueda vacía
-    });
-  };
-
-  // 2. Función para ir a búsqueda por Marca (cuando tocas un logo)
-  const handleBrandSearch = (marca: string) => {
-    console.log("Buscando marca:", marca); 
-    router.push({
-      pathname: '/search',
-      params: { q: marca } // Envía el nombre de la marca
     });
   };
 
@@ -133,26 +112,41 @@ export default function DashboardScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* Accesos Rápidos - Grid de Marcas */}
-        <Text className="text-white font-bold text-lg mx-6 mt-8 mb-4">Marcas Frecuentes</Text>
-        <View className="flex-row flex-wrap justify-between px-6 mb-24">
-          {marcas.map((marca, index) => (
-            <TouchableOpacity
-              key={index}
-              onPress={() => handleBrandSearch(marca)} // <--- AQUÍ ESTÁ LA MAGIA
-              className="w-[22%] aspect-square bg-slate-800 rounded-xl items-center justify-center mb-3 border border-slate-700/50 p-1"
-              activeOpacity={0.7}
-            >
-              <Text 
-                className="text-white font-semibold text-xs text-center"
-                adjustsFontSizeToFit={true}
-                numberOfLines={1}
-                minimumFontScale={0.7}
-              >
-                {marca}
-              </Text>
-            </TouchableOpacity>
-          ))}
+        {/* Búsqueda Rápida - Stats */}
+        <View className="mx-6 mt-8 mb-6">
+          <Text className="text-white font-bold text-lg mb-2">Búsqueda Rápida</Text>
+          <Text className="text-slate-400 text-sm mb-6">
+            Accede a más de 17,000 diagramas técnicos automotrices
+          </Text>
+          
+          {/* Stats Cards */}
+          <View className="flex-row justify-between gap-3 mb-6">
+            {/* Card 1: Diagramas */}
+            <View className="flex-1 bg-slate-800 rounded-xl p-4 border border-slate-700/50 items-center">
+              <FileText size={24} color="#06b6d4" className="mb-2" />
+              <Text className="text-white font-bold text-lg">17,865+</Text>
+              <Text className="text-slate-400 text-xs text-center mt-1">Diagramas</Text>
+            </View>
+            
+            {/* Card 2: Marcas */}
+            <View className="flex-1 bg-slate-800 rounded-xl p-4 border border-slate-700/50 items-center">
+              <Car size={24} color="#06b6d4" className="mb-2" />
+              <Text className="text-white font-bold text-lg">41</Text>
+              <Text className="text-slate-400 text-xs text-center mt-1">Marcas</Text>
+            </View>
+            
+            {/* Card 3: Años */}
+            <View className="flex-1 bg-slate-800 rounded-xl p-4 border border-slate-700/50 items-center">
+              <Calendar size={24} color="#06b6d4" className="mb-2" />
+              <Text className="text-white font-bold text-lg">1972-2026</Text>
+              <Text className="text-slate-400 text-xs text-center mt-1">Años</Text>
+            </View>
+          </View>
+          
+          {/* Espacio publicitario */}
+          <View className="bg-slate-800/30 rounded-xl p-8 border border-slate-700/30 items-center justify-center mb-24">
+            <Text className="text-slate-500 text-xs">Espacio publicitario disponible</Text>
+          </View>
         </View>
       </ScrollView>
 

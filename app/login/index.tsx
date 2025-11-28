@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
-import { Zap } from 'lucide-react-native';
+import { Zap, Eye, EyeOff } from 'lucide-react-native';
 import { authAPI } from '../services/api';
 import * as SecureStore from 'expo-secure-store';
 
@@ -9,6 +9,7 @@ export default function LoginScreen() {
   const router = useRouter();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -72,15 +73,28 @@ export default function LoginScreen() {
 
         <View className="mb-6">
           <Text className="text-slate-400 text-sm mb-2 ml-1">Contraseña</Text>
-          <TextInput
-            className="bg-slate-800 text-white rounded-xl px-4 py-4 border border-slate-700"
-            placeholder="Ingresa tu contraseña"
-            placeholderTextColor="#64748b"
-            value={password}
-            onChangeText={setPassword}
-            secureTextEntry
-            editable={!loading}
-          />
+          <View className="relative">
+            <TextInput
+              className="bg-slate-800 text-white rounded-xl px-4 py-4 pr-12 border border-slate-700"
+              placeholder="Ingresa tu contraseña"
+              placeholderTextColor="#64748b"
+              value={password}
+              onChangeText={setPassword}
+              secureTextEntry={!showPassword}
+              editable={!loading}
+            />
+            <TouchableOpacity
+              onPress={() => setShowPassword(!showPassword)}
+              className="absolute right-3 top-0 bottom-0 justify-center"
+              activeOpacity={0.7}
+            >
+              {showPassword ? (
+                <EyeOff size={20} color="#64748b" />
+              ) : (
+                <Eye size={20} color="#64748b" />
+              )}
+            </TouchableOpacity>
+          </View>
         </View>
 
         <TouchableOpacity
