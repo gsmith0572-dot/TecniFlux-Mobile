@@ -362,6 +362,37 @@ export const subscriptionAPI = {
     return subscriptionAPI.createCheckoutSession(planId);
   },
 
+  // Función para verificar y actualizar suscripción usando session_id de Stripe
+  verifyPayment: async (sessionId: string): Promise<UserSubscription | null> => {
+    console.log('[subscriptionAPI] 🔍 Verificando pago con session_id:', sessionId);
+    try {
+      // Intentar llamar a un endpoint que verifique el session_id y actualice la suscripción
+      const response = await api.post('/subscription/verify-payment', { sessionId });
+      console.log('[subscriptionAPI] ✅ Verificación de pago exitosa:', response.data);
+      
+      if (response.data.subscription) {
+        const subscription = {
+          plan: response.data.subscription.plan || 'free',
+          status: response.data.subscription.status || 'active',
+          currentPeriodEnd: response.data.subscription.currentPeriodEnd || new Date(Date.now() + 30*24*60*60*1000).toISOString(),
+          cancelAtPeriodEnd: response.data.subscription.cancelAtPeriodEnd || false,
+        };
+        
+        // Limpiar cache y guardar nueva suscripción
+        await SecureStore.deleteItemAsync('userSubscription');
+        await SecureStore.setItemAsync('userSubscription', JSON.stringify(subscription));
+        
+        return subscription;
+      }
+      
+      return null;
+    } catch (error: any) {
+      console.error('[subscriptionAPI] ❌ Error al verificar pago:', error);
+      // Si el endpoint no existe, retornar null y el código seguirá con polling normal
+      return null;
+    }
+  },
+
   cancelSubscription: async (): Promise<void> => {
     console.log('[subscriptionAPI] Cancelando suscripción');
     const response = await api.post('/subscription/cancel');

@@ -41,12 +41,38 @@ export default function CheckoutScreen() {
       // Limpiar cache para forzar actualización
       await SecureStore.deleteItemAsync('userSubscription');
       
-      // Esperar un poco para que el backend procese el webhook de Stripe
-      console.log('[Checkout] ⏳ Esperando 3 segundos para que el backend procese el pago...');
-      await new Promise(resolve => setTimeout(resolve, 3000));
+      // PRIMERO: Intentar verificar el pago usando el session_id (si el backend lo soporta)
+      if (sessionId) {
+        console.log('[Checkout] 🔍 Intentando verificar pago con session_id...');
+        try {
+          const verifiedSubscription = await subscriptionAPI.verifyPayment(sessionId);
+          if (verifiedSubscription && verifiedSubscription.plan !== 'free') {
+            console.log('[Checkout] ✅ Suscripción actualizada mediante verificación de pago:', verifiedSubscription);
+            Alert.alert(
+              '¡Pago Exitoso!',
+              `Tu suscripción ha sido activada correctamente. Plan: ${verifiedSubscription.plan.toUpperCase()}`,
+              [
+                {
+                  text: 'OK',
+                  onPress: () => {
+                    router.replace('/dashboard');
+                  },
+                },
+              ]
+            );
+            return;
+          }
+        } catch (verifyError) {
+          console.log('[Checkout] ⚠️ Verificación directa no disponible, continuando con polling...', verifyError);
+        }
+      }
       
-      // Hacer polling hasta que el backend refleje el cambio (máximo 30 segundos)
-      const maxAttempts = 10;
+      // SEGUNDO: Esperar un poco para que el backend procese el webhook de Stripe
+      console.log('[Checkout] ⏳ Esperando 5 segundos para que el backend procese el webhook de Stripe...');
+      await new Promise(resolve => setTimeout(resolve, 5000));
+      
+      // TERCERO: Hacer polling más agresivo (máximo 60 segundos)
+      const maxAttempts = 20; // Aumentado a 20 intentos
       const delayMs = 3000; // 3 segundos entre intentos
       let subscription = null;
       let attempts = 0;
@@ -84,9 +110,11 @@ export default function CheckoutScreen() {
       
       if (!subscription || subscription.plan === 'free') {
         console.warn('[Checkout] ⚠️ No se pudo verificar la actualización de suscripción después de múltiples intentos');
+        console.warn('[Checkout] ⚠️ PROBLEMA: El backend NO está actualizando la suscripción después del pago');
+        console.warn('[Checkout] ⚠️ El pago fue capturado por Stripe pero el webhook del backend no está funcionando');
         Alert.alert(
           'Pago Procesado',
-          'Tu pago fue procesado exitosamente. La suscripción se actualizará en unos momentos. Por favor recarga la app.',
+          `Tu pago fue capturado exitosamente por Stripe (session_id: ${sessionId?.substring(0, 20)}...). Sin embargo, el sistema no ha actualizado tu suscripción automáticamente. Por favor contacta al soporte con este session_id para que actualicen tu cuenta manualmente.`,
           [
             {
               text: 'OK',
@@ -117,7 +145,7 @@ export default function CheckoutScreen() {
       console.error('[Checkout] ❌ Error al actualizar subscription:', error);
       Alert.alert(
         'Pago Exitoso',
-        'Tu pago fue procesado. La suscripción se actualizará en breve. Si no ves el cambio, recarga la app.',
+        'Tu pago fue procesado. La suscripción se actualizará en breve. Si no ves el cambio, recarga la app o contacta al soporte.',
         [
           {
             text: 'OK',
