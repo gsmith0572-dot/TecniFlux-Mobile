@@ -16,8 +16,16 @@ export default function RegisterScreen() {
   const [loading, setLoading] = useState(false);
 
   const handleRegister = async () => {
+    // Validaciones
     if (!username.trim() || !email.trim() || !password.trim()) {
       Alert.alert('Error', 'Por favor completa todos los campos');
+      return;
+    }
+
+    // Validar formato de email
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email.trim())) {
+      Alert.alert('Error', 'Por favor ingresa un email válido');
       return;
     }
 
@@ -34,7 +42,8 @@ export default function RegisterScreen() {
     setLoading(true);
 
     try {
-      await authAPI.register(username, email, password);
+      // Asegurarse de que los datos estén limpios antes de enviar
+      await authAPI.register(username.trim(), email.trim(), password);
       
       // Inicializar contador de búsquedas
       await initializeSearchCounter();
@@ -56,10 +65,16 @@ export default function RegisterScreen() {
         },
       ]);
     } catch (error: any) {
-      console.error('[Register] Error:', error);
+      console.error('[Register] Error completo:', error);
+      console.error('[Register] Error response:', error.response?.data);
+      console.error('[Register] Error message:', error.message);
+      
+      // Mostrar el mensaje de error real del servidor
+      const errorMessage = error.message || error.response?.data?.message || error.response?.data?.error || 'No se pudo crear la cuenta. Intenta de nuevo.';
+      
       Alert.alert(
         'Error al registrar',
-        error.response?.data?.message || 'No se pudo crear la cuenta. Intenta de nuevo.'
+        errorMessage
       );
     } finally {
       setLoading(false);

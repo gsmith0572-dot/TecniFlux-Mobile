@@ -114,15 +114,27 @@ export const authAPI = {
   },
 
   register: async (username: string, email: string, password: string) => {
-    console.log('[authAPI.register] Registrando nuevo usuario:', username);
+    // Limpiar y validar datos antes de enviar
+    const cleanUsername = username.trim();
+    const cleanEmail = email.trim().toLowerCase();
+    const cleanPassword = password;
     
-    const response = await api.post('/auth/register', {
-      username,
-      email,
-      password
+    console.log('[authAPI.register] Registrando nuevo usuario:', cleanUsername);
+    console.log('[authAPI.register] Email:', cleanEmail);
+    console.log('[authAPI.register] Datos a enviar:', {
+      username: cleanUsername,
+      email: cleanEmail,
+      password: '***' // No loggear password
     });
     
-    console.log('[authAPI.register] 📦 Respuesta:', JSON.stringify(response.data, null, 2));
+    try {
+      const response = await api.post('/auth/register', {
+        username: cleanUsername,
+        email: cleanEmail,
+        password: cleanPassword
+      });
+      
+      console.log('[authAPI.register] 📦 Respuesta exitosa:', JSON.stringify(response.data, null, 2));
     
     // Verificar token en respuesta
     const tokenFields = ['token', 'accessToken', 'access_token', 'jwt', 'authToken'];
@@ -142,8 +154,8 @@ export const authAPI = {
       try {
         // Hacer login automático con las credenciales del usuario
         const loginResponse = await api.post('/auth/login', {
-          username: username.trim(),
-          password
+          username: cleanUsername,
+          password: cleanPassword
         });
         
         console.log('[authAPI.register] 📦 Respuesta de login:', JSON.stringify(loginResponse.data, null, 2));
@@ -166,8 +178,8 @@ export const authAPI = {
         if (response.data.id || response.data.username) {
           const userData = {
             id: response.data.id,
-            username: response.data.username?.trim() || username.trim(),
-            email: response.data.email || email,
+            username: response.data.username?.trim() || cleanUsername,
+            email: response.data.email || cleanEmail,
             role: response.data.role || 'tecnico'
           };
           await SecureStore.setItemAsync('userData', JSON.stringify(userData));
@@ -175,7 +187,8 @@ export const authAPI = {
         }
       } catch (loginError: any) {
         console.error('[authAPI.register] ❌ Error en login automático:', loginError);
-        throw new Error('Cuenta creada pero no se pudo iniciar sesión automáticamente. Por favor inicia sesión manualmente.');
+        const loginErrorMessage = loginError.response?.data?.message || loginError.message || 'Error desconocido';
+        throw new Error(`Cuenta creada pero no se pudo iniciar sesión: ${loginErrorMessage}`);
       }
     } else {
       // Si hay token, guardar datos del usuario normalmente
@@ -184,8 +197,8 @@ export const authAPI = {
       } else if (response.data.id || response.data.username) {
         const userData = {
           id: response.data.id,
-          username: response.data.username?.trim() || username.trim(),
-          email: response.data.email || email,
+          username: response.data.username?.trim() || cleanUsername,
+          email: response.data.email || cleanEmail,
           role: response.data.role || 'tecnico'
         };
         await SecureStore.setItemAsync('userData', JSON.stringify(userData));
@@ -201,6 +214,38 @@ export const authAPI = {
     console.log('[authAPI.register] ✅ Caché de subscription borrado');
     
     return response;
+    } catch (error: any) {
+      console.error('[authAPI.register] ❌ Error completo:', error);
+      console.error('[authAPI.register] ❌ Error response:', error.response?.data);
+      console.error('[authAPI.register] ❌ Error status:', error.response?.status);
+      console.error('[authAPI.register] ❌ Error message:', error.message);
+      
+      // Extraer mensaje de error del servidor
+      let errorMessage = 'No se pudo crear la cuenta. Intenta de nuevo.';
+      
+      if (error.response?.data) {
+        // Intentar obtener el mensaje de error del servidor
+        if (error.response.data.message) {
+          errorMessage = error.response.data.message;
+        } else if (error.response.data.error) {
+          errorMessage = error.response.data.error;
+        } else if (typeof error.response.data === 'string') {
+          errorMessage = error.response.data;
+        } else if (error.response.data.errors) {
+          // Si hay múltiples errores de validación
+          const errors = error.response.data.errors;
+          if (Array.isArray(errors)) {
+            errorMessage = errors.join(', ');
+          } else if (typeof errors === 'object') {
+            errorMessage = Object.values(errors).join(', ');
+          }
+        }
+      } else if (error.message) {
+        errorMessage = error.message;
+      }
+      
+      throw new Error(errorMessage);
+    }
   },
   
   logout: async () => {
