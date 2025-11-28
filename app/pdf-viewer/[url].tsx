@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, TouchableOpacity, ActivityIndicator } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { WebView } from 'react-native-webview';
@@ -10,15 +10,37 @@ export default function PDFViewerScreen() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
+  const webViewRef = useRef<WebView>(null);
 
   const pdfUrl = Array.isArray(url) ? url[0] : url || '';
 
   const INJECTED_JAVASCRIPT = `
-    const meta = document.createElement('meta');
-    meta.setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes');
-    meta.setAttribute('name', 'viewport');
-    document.getElementsByTagName('head')[0].appendChild(meta);
-    true;
+    (function() {
+      // Habilitar zoom en el viewport
+      const meta = document.createElement('meta');
+      meta.setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=10.0, minimum-scale=0.5, user-scalable=yes');
+      meta.setAttribute('name', 'viewport');
+      
+      // Remover viewport existente si existe
+      const existingViewport = document.querySelector('meta[name="viewport"]');
+      if (existingViewport) {
+        existingViewport.remove();
+      }
+      
+      document.getElementsByTagName('head')[0].appendChild(meta);
+      
+      // Habilitar zoom en el body
+      document.body.style.touchAction = 'pan-x pan-y pinch-zoom';
+      document.body.style.webkitUserSelect = 'text';
+      document.body.style.userSelect = 'text';
+      
+      // Habilitar zoom en todos los elementos
+      const style = document.createElement('style');
+      style.textContent = '* { touch-action: pan-x pan-y pinch-zoom !important; -webkit-user-select: text !important; user-select: text !important; }';
+      document.head.appendChild(style);
+      
+      true;
+    })();
   `;
 
   useEffect(() => {
@@ -146,6 +168,7 @@ export default function PDFViewerScreen() {
 
       <GestureHandlerRootView style={{ flex: 1 }}>
         <WebView
+          ref={webViewRef}
           source={{ uri: pdfUrl }}
           onLoadStart={() => {
             console.log('[WebView] Iniciando carga del PDF desde Google Drive');
@@ -153,6 +176,13 @@ export default function PDFViewerScreen() {
           onLoadEnd={() => {
             console.log('[WebView] PDF cargado completamente');
             setLoading(false);
+            // Inyectar JavaScript después de que la página cargue para habilitar zoom
+            setTimeout(() => {
+              if (webViewRef.current) {
+                console.log('[WebView] Inyectando JavaScript para zoom');
+                webViewRef.current.injectJavaScript(INJECTED_JAVASCRIPT);
+              }
+            }, 1000);
           }}
           onError={(syntheticEvent) => {
             const { nativeEvent } = syntheticEvent;
@@ -162,14 +192,19 @@ export default function PDFViewerScreen() {
           }}
           onShouldStartLoadWithRequest={handleShouldStartLoadWithRequest}
           startInLoadingState={true}
-          scalesPageToFit={true}
-          showsHorizontalScrollIndicator={false}
-          showsVerticalScrollIndicator={false}
+          scalesPageToFit={false}
+          showsHorizontalScrollIndicator={true}
+          showsVerticalScrollIndicator={true}
           bounces={true}
-          injectedJavaScript={INJECTED_JAVASCRIPT}
-          style={{ flex: 1, backgroundColor: '#0f172a' }}
+          javaScriptEnabled={true}
+          domStorageEnabled={true}
           allowsInlineMediaPlayback={true}
           mediaPlaybackRequiresUserAction={false}
+          injectedJavaScript={INJECTED_JAVASCRIPT}
+          injectedJavaScriptBeforeContentLoaded={INJECTED_JAVASCRIPT}
+          onMessage={() => {}}
+          style={{ flex: 1, backgroundColor: '#0f172a' }}
+          allowsBackForwardNavigationGestures={true}
         />
       </GestureHandlerRootView>
 
