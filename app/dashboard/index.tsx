@@ -121,7 +121,7 @@ export default function DashboardScreen() {
           
           {/* Espacio publicitario - Ocupa todo el espacio */}
           <View className="bg-slate-800/30 rounded-xl p-12 border border-slate-700/30 items-center justify-center mb-24" style={{ minHeight: 200 }}>
-            <Text className="text-slate-500 text-sm">Espacio Publicitario Disponible</Text>
+            <Text className="text-slate-500 text-sm text-center" style={{ textAlign: 'center' }}>Espacio Publicitario Disponible</Text>
           </View>
         </View>
       </ScrollView>

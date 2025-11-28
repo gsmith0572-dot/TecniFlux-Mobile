@@ -39,6 +39,35 @@ export default function PDFViewerScreen() {
       style.textContent = '* { touch-action: pan-x pan-y pinch-zoom !important; -webkit-user-select: text !important; user-select: text !important; }';
       document.head.appendChild(style);
       
+      // Ocultar botón negro cuadrado con flecha (botón de compartir/abrir externamente)
+      const hideShareButton = setInterval(() => {
+        // Buscar y ocultar botones de compartir/abrir
+        const shareButtons = document.querySelectorAll('[aria-label*="Abrir"], [aria-label*="Open"], [aria-label*="Share"], button[title*="Abrir"], button[title*="Open"], .ndfHFb, .ndfHFb-c4YZDc, [data-tooltip*="Abrir"], [data-tooltip*="Open"]');
+        shareButtons.forEach(btn => {
+          if (btn) {
+            btn.style.display = 'none';
+            btn.style.visibility = 'hidden';
+            btn.style.opacity = '0';
+            btn.style.pointerEvents = 'none';
+          }
+        });
+        
+        // Buscar elementos con ícono de flecha diagonal
+        const arrowButtons = document.querySelectorAll('svg[viewBox*="24"], svg[viewBox*="20"]');
+        arrowButtons.forEach(svg => {
+          const parent = svg.closest('button, div[role="button"], a');
+          if (parent && (parent.getAttribute('aria-label')?.includes('Abrir') || parent.getAttribute('aria-label')?.includes('Open') || parent.getAttribute('title')?.includes('Abrir') || parent.getAttribute('title')?.includes('Open'))) {
+            parent.style.display = 'none';
+            parent.style.visibility = 'hidden';
+            parent.style.opacity = '0';
+            parent.style.pointerEvents = 'none';
+          }
+        });
+      }, 500);
+      
+      // Limpiar intervalo después de 10 segundos
+      setTimeout(() => clearInterval(hideShareButton), 10000);
+      
       true;
     })();
   `;
@@ -133,15 +162,13 @@ export default function PDFViewerScreen() {
       <View className="bg-slate-800 pt-12 pb-4 px-4 flex-row items-center justify-between">
         <Text className="text-white text-xl font-bold">Diagrama PDF</Text>
         
-        {/* Botón X - MÁS GRANDE Y ROJO */}
+        {/* Botón X - Reducido */}
         <View style={{ 
-          width: 60, 
-          height: 60, 
           justifyContent: 'center', 
           alignItems: 'center',
           position: 'absolute',
-          right: 10,
-          top: 40
+          right: 12,
+          top: 48
         }}>
           <TouchableOpacity 
             onPress={() => {
@@ -151,17 +178,17 @@ export default function PDFViewerScreen() {
             }}
             activeOpacity={0.6}
             style={{ 
-              width: 50,
-              height: 50,
+              width: 36,
+              height: 36,
               backgroundColor: 'rgba(239, 68, 68, 0.9)',
-              borderRadius: 25,
+              borderRadius: 18,
               justifyContent: 'center',
               alignItems: 'center',
-              borderWidth: 2,
+              borderWidth: 1.5,
               borderColor: '#ffffff'
             }}
           >
-            <X size={28} color="#ffffff" strokeWidth={3} />
+            <X size={18} color="#ffffff" strokeWidth={2.5} />
           </TouchableOpacity>
         </View>
       </View>
