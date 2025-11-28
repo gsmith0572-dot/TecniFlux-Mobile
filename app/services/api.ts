@@ -246,6 +246,18 @@ export const adminAPI = {
       throw error;
     }
   },
+
+  getSubscriptions: async () => {
+    console.log('[adminAPI] Obteniendo todas las suscripciones');
+    try {
+      const response = await api.get('/admin/subscriptions');
+      console.log('[adminAPI] ✅ Suscripciones obtenidas:', response.data);
+      return response.data;
+    } catch (error: any) {
+      console.error('[adminAPI] ❌ Error al obtener suscripciones:', error);
+      throw error;
+    }
+  },
 };
 
 export default api;

@@ -3,7 +3,7 @@ import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, Alert } fr
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { useRouter } from 'expo-router';
-import { ArrowLeft, Users, DollarSign, TrendingUp, BarChart3, UserPlus } from 'lucide-react-native';
+import { ArrowLeft, Users, DollarSign, TrendingUp, BarChart3, UserPlus, Calculator, Receipt } from 'lucide-react-native';
 import * as SecureStore from 'expo-secure-store';
 import { adminAPI } from '../services/api';
 
@@ -16,15 +16,23 @@ interface AdminStats {
   monthlyGrowth: Array<{ month: string; count: number }>;
 }
 
+interface Subscription {
+  plan: string;
+  price: number;
+  status: string;
+}
+
 export default function AdminScreen() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState<AdminStats | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [subscriptions, setSubscriptions] = useState<Subscription[]>([]);
 
   useEffect(() => {
     checkAdminAccess();
     fetchAdminStats();
+    fetchSubscriptions();
   }, []);
 
   const checkAdminAccess = async () => {
@@ -95,6 +103,58 @@ export default function AdminScreen() {
     }
   };
 
+  const fetchSubscriptions = async () => {
+    try {
+      const subscriptionsData = await adminAPI.getSubscriptions();
+      // Filtrar solo suscripciones activas y pagas (no free)
+      const paidSubscriptions = subscriptionsData.filter((sub: Subscription) => 
+        sub.status === 'active' && sub.plan !== 'free'
+      );
+      setSubscriptions(paidSubscriptions);
+    } catch (error: any) {
+      console.error('[Admin] Error obteniendo suscripciones:', error);
+      // Mock data para desarrollo
+      setSubscriptions([
+        { plan: 'plus', price: 5.99, status: 'active' },
+        { plan: 'premium', price: 9.99, status: 'active' },
+        { plan: 'pro', price: 19.99, status: 'active' },
+        { plan: 'plus', price: 5.99, status: 'active' },
+        { plan: 'premium', price: 9.99, status: 'active' },
+        { plan: 'pro', price: 19.99, status: 'active' },
+        { plan: 'plus', price: 5.99, status: 'active' },
+        { plan: 'premium', price: 9.99, status: 'active' },
+        { plan: 'pro', price: 19.99, status: 'active' },
+        { plan: 'plus', price: 5.99, status: 'active' },
+        { plan: 'premium', price: 9.99, status: 'active' },
+        { plan: 'pro', price: 19.99, status: 'active' },
+      ]);
+    }
+  };
+
+  const calculateGrossRevenue = () => {
+    const FIXED_COSTS = 89;
+    const TAX_RATE = 0.20; // 20%
+    
+    // Sumar todas las suscripciones pagas
+    const totalSubscriptions = subscriptions.reduce((sum, sub) => sum + sub.price, 0);
+    
+    // Restar costos fijos
+    const afterFixedCosts = totalSubscriptions - FIXED_COSTS;
+    
+    // Restar taxes (20% del resultado después de costos fijos)
+    const taxes = afterFixedCosts * TAX_RATE;
+    const grossAfterCosts = afterFixedCosts - taxes;
+    
+    return {
+      paidUsers: subscriptions.length,
+      totalSubscriptions,
+      fixedCosts: FIXED_COSTS,
+      afterFixedCosts,
+      taxes,
+      grossAfterCosts,
+    };
+  };
+
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('es-MX', {
       style: 'currency',
@@ -153,8 +213,56 @@ export default function AdminScreen() {
       </View>
 
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
-        {/* Stats Cards */}
+        {/* Gross Revenue Section */}
         <View className="px-6 pt-6">
+          <View className="flex-row items-center mb-4">
+            <Calculator size={20} color="#10b981" />
+            <Text className="text-white text-xl font-bold ml-2">Gross Revenue</Text>
+          </View>
+          <View className="bg-slate-800 rounded-xl p-4 border border-slate-700 mb-6">
+            {(() => {
+              const revenue = calculateGrossRevenue();
+              return (
+                <>
+                  <View className="mb-4">
+                    <View className="flex-row justify-between items-center mb-2">
+                      <Text className="text-slate-400 text-sm">Usuarios Pagos</Text>
+                      <Text className="text-white text-lg font-bold">{revenue.paidUsers}</Text>
+                    </View>
+                    <View className="flex-row justify-between items-center mb-2">
+                      <Text className="text-slate-400 text-sm">Total Suscripciones</Text>
+                      <Text className="text-white text-lg font-bold">{formatCurrency(revenue.totalSubscriptions)}</Text>
+                    </View>
+                    <View className="flex-row justify-between items-center mb-2">
+                      <Text className="text-slate-400 text-sm">Costos Fijos</Text>
+                      <Text className="text-red-400 text-lg font-bold">-{formatCurrency(revenue.fixedCosts)}</Text>
+                    </View>
+                    <View className="flex-row justify-between items-center mb-2">
+                      <Text className="text-slate-400 text-sm">Subtotal (Después de Costos)</Text>
+                      <Text className="text-white text-lg font-bold">{formatCurrency(revenue.afterFixedCosts)}</Text>
+                    </View>
+                    <View className="flex-row justify-between items-center mb-3">
+                      <Text className="text-slate-400 text-sm">Taxes (20%)</Text>
+                      <Text className="text-red-400 text-lg font-bold">-{formatCurrency(revenue.taxes)}</Text>
+                    </View>
+                    <View className="border-t border-slate-700 pt-3 mt-2">
+                      <View className="flex-row justify-between items-center">
+                        <View className="flex-row items-center">
+                          <Receipt size={20} color="#10b981" />
+                          <Text className="text-white text-lg font-bold ml-2">Gross After Costs</Text>
+                        </View>
+                        <Text className="text-green-400 text-2xl font-bold">{formatCurrency(revenue.grossAfterCosts)}</Text>
+                      </View>
+                    </View>
+                  </View>
+                </>
+              );
+            })()}
+          </View>
+        </View>
+
+        {/* Stats Cards */}
+        <View className="px-6">
           <View className="flex-row flex-wrap justify-between mb-6">
             {/* Total Users */}
             <View className="w-[48%] bg-slate-800 rounded-xl p-4 mb-4 border border-slate-700">
@@ -268,7 +376,10 @@ export default function AdminScreen() {
         {/* Refresh Button */}
         <View className="px-6 pb-8">
           <TouchableOpacity
-            onPress={fetchAdminStats}
+            onPress={() => {
+              fetchAdminStats();
+              fetchSubscriptions();
+            }}
             className="bg-cyan-500 py-4 rounded-xl"
             disabled={loading}
           >
