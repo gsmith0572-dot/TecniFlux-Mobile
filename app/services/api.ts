@@ -15,6 +15,17 @@ const api = axios.create({
 // Request interceptor para agregar el token
 api.interceptors.request.use(
   async (config) => {
+    // Endpoints públicos que NO deben tener token
+    const publicEndpoints = ['/auth/register', '/auth/login'];
+    const isPublicEndpoint = publicEndpoints.some(endpoint => config.url?.includes(endpoint));
+    
+    // Si es un endpoint público, NO agregar token
+    if (isPublicEndpoint) {
+      console.log('[API Interceptor] 🔓 Endpoint público, sin token:', config.url);
+      return config;
+    }
+    
+    // Para endpoints privados, agregar token si existe
     const token = await SecureStore.getItemAsync('userToken');
     
     if (token) {
