@@ -3,7 +3,7 @@ import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { Search, ScanBarcode, History, Shield, FileText, Car, Calendar } from 'lucide-react-native';
+import { Search, ScanBarcode, History, Shield } from 'lucide-react-native';
 import SubscriptionBanner from '../../components/SubscriptionBanner';
 import { useSubscription } from '../../hooks/useSubscription';
 import * as SecureStore from 'expo-secure-store';
@@ -112,40 +112,16 @@ export default function DashboardScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* Búsqueda Rápida - Stats */}
+        {/* Búsqueda Rápida - Espacio Publicitario */}
         <View className="mx-6 mt-8 mb-6">
-          <Text className="text-white font-bold text-lg mb-2">Búsqueda Rápida</Text>
-          <Text className="text-slate-400 text-sm mb-6">
-            Accede a más de 17,000 diagramas técnicos automotrices
+          <Text className="text-white font-bold text-lg mb-2 text-center">Búsqueda Rápida</Text>
+          <Text className="text-slate-400 text-sm mb-6 text-center">
+            Accede a más de 30,000 diagramas técnicos automotrices
           </Text>
           
-          {/* Stats Cards */}
-          <View className="flex-row justify-between gap-3 mb-6">
-            {/* Card 1: Diagramas */}
-            <View className="flex-1 bg-slate-800 rounded-xl p-4 border border-slate-700/50 items-center">
-              <FileText size={24} color="#06b6d4" className="mb-2" />
-              <Text className="text-white font-bold text-lg">17,865+</Text>
-              <Text className="text-slate-400 text-xs text-center mt-1">Diagramas</Text>
-            </View>
-            
-            {/* Card 2: Marcas */}
-            <View className="flex-1 bg-slate-800 rounded-xl p-4 border border-slate-700/50 items-center">
-              <Car size={24} color="#06b6d4" className="mb-2" />
-              <Text className="text-white font-bold text-lg">41</Text>
-              <Text className="text-slate-400 text-xs text-center mt-1">Marcas</Text>
-            </View>
-            
-            {/* Card 3: Años */}
-            <View className="flex-1 bg-slate-800 rounded-xl p-4 border border-slate-700/50 items-center">
-              <Calendar size={24} color="#06b6d4" className="mb-2" />
-              <Text className="text-white font-bold text-lg">1972-2026</Text>
-              <Text className="text-slate-400 text-xs text-center mt-1">Años</Text>
-            </View>
-          </View>
-          
-          {/* Espacio publicitario */}
-          <View className="bg-slate-800/30 rounded-xl p-8 border border-slate-700/30 items-center justify-center mb-24">
-            <Text className="text-slate-500 text-xs">Espacio publicitario disponible</Text>
+          {/* Espacio publicitario - Ocupa todo el espacio */}
+          <View className="bg-slate-800/30 rounded-xl p-12 border border-slate-700/30 items-center justify-center mb-24" style={{ minHeight: 200 }}>
+            <Text className="text-slate-500 text-sm">Espacio Publicitario Disponible</Text>
           </View>
         </View>
       </ScrollView>
