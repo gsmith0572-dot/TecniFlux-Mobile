@@ -308,6 +308,34 @@ export const subscriptionAPI = {
     }
   },
 
+  // Función para forzar actualización desde el backend, ignorando cache
+  forceRefresh: async (): Promise<UserSubscription> => {
+    console.log('[subscriptionAPI] 🔄 Forzando actualización desde backend (ignorando cache)');
+    try {
+      // Limpiar cache primero
+      await SecureStore.deleteItemAsync('userSubscription');
+
+      // Obtener del backend
+      const response = await api.get('/user/subscription');
+      console.log('[subscriptionAPI] ✅ Estado de suscripción desde backend (force refresh):', response.data);
+      
+      const subscription = {
+        plan: response.data.plan || 'free',
+        status: response.data.status || 'active',
+        currentPeriodEnd: response.data.currentPeriodEnd || new Date(Date.now() + 30*24*60*60*1000).toISOString(),
+        cancelAtPeriodEnd: response.data.cancelAtPeriodEnd || false,
+      };
+
+      // Guardar en SecureStore
+      await SecureStore.setItemAsync('userSubscription', JSON.stringify(subscription));
+      
+      return subscription;
+    } catch (error: any) {
+      console.error('[subscriptionAPI] ❌ Error al forzar actualización:', error);
+      throw error;
+    }
+  },
+
   getSubscriptionStatus: async (): Promise<UserSubscription> => {
     // Mantener compatibilidad con código existente
     return subscriptionAPI.getStatus();

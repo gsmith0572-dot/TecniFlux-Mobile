@@ -17,9 +17,12 @@ export default function CheckoutScreen() {
     console.log('[Checkout] Navigation change:', currentUrl);
 
     // Si Stripe redirige a success
-    if (currentUrl.includes('success') || currentUrl.includes('checkout/success') || currentUrl.includes('tecniflux://success')) {
+    if (currentUrl.includes('success') || currentUrl.includes('checkout/success') || currentUrl.includes('tecniflux://success') || currentUrl.includes('subscription-success')) {
       setLoading(false);
-      handlePaymentSuccess();
+      // Extraer session_id de la URL
+      const sessionIdMatch = currentUrl.match(/[?&]session_id=([^&]+)/);
+      const sessionId = sessionIdMatch ? sessionIdMatch[1] : null;
+      handlePaymentSuccess(sessionId);
       return;
     }
 
@@ -31,22 +34,76 @@ export default function CheckoutScreen() {
     }
   };
 
-  const handlePaymentSuccess = async () => {
+  const handlePaymentSuccess = async (sessionId: string | null) => {
     try {
+      console.log('[Checkout] 💳 Pago exitoso detectado, session_id:', sessionId);
+      
       // Limpiar cache para forzar actualización
       await SecureStore.deleteItemAsync('userSubscription');
       
-      // Refrescar subscription desde el backend
-      const subscription = await subscriptionAPI.getStatus();
+      // Esperar un poco para que el backend procese el webhook de Stripe
+      console.log('[Checkout] ⏳ Esperando 3 segundos para que el backend procese el pago...');
+      await new Promise(resolve => setTimeout(resolve, 3000));
       
-      // Guardar en SecureStore
-      await SecureStore.setItemAsync('userSubscription', JSON.stringify(subscription));
+      // Hacer polling hasta que el backend refleje el cambio (máximo 30 segundos)
+      const maxAttempts = 10;
+      const delayMs = 3000; // 3 segundos entre intentos
+      let subscription = null;
+      let attempts = 0;
       
-      console.log('[Checkout] ✅ Subscription actualizada:', subscription);
+      console.log('[Checkout] 🔄 Iniciando polling para verificar actualización de suscripción...');
+      
+      while (attempts < maxAttempts) {
+        attempts++;
+        console.log(`[Checkout] 🔍 Intento ${attempts}/${maxAttempts}: Verificando suscripción...`);
+        
+        try {
+          // Forzar actualización desde backend (ignorando cache)
+          subscription = await subscriptionAPI.forceRefresh();
+          
+          console.log(`[Checkout] 📦 Suscripción actual: plan="${subscription.plan}", status="${subscription.status}"`);
+          
+          // Si la suscripción ya no es 'free', el pago fue procesado
+          if (subscription.plan !== 'free' && subscription.status === 'active') {
+            console.log(`[Checkout] ✅ Suscripción actualizada correctamente a plan: ${subscription.plan}`);
+            break;
+          }
+          
+          // Si aún es 'free', esperar y reintentar
+          if (attempts < maxAttempts) {
+            console.log(`[Checkout] ⏳ Suscripción aún en 'free', esperando ${delayMs}ms antes del siguiente intento...`);
+            await new Promise(resolve => setTimeout(resolve, delayMs));
+          }
+        } catch (error) {
+          console.error(`[Checkout] ❌ Error en intento ${attempts}:`, error);
+          if (attempts < maxAttempts) {
+            await new Promise(resolve => setTimeout(resolve, delayMs));
+          }
+        }
+      }
+      
+      if (!subscription || subscription.plan === 'free') {
+        console.warn('[Checkout] ⚠️ No se pudo verificar la actualización de suscripción después de múltiples intentos');
+        Alert.alert(
+          'Pago Procesado',
+          'Tu pago fue procesado exitosamente. La suscripción se actualizará en unos momentos. Por favor recarga la app.',
+          [
+            {
+              text: 'OK',
+              onPress: () => {
+                router.replace('/dashboard');
+              },
+            },
+          ]
+        );
+        return;
+      }
+      
+      console.log('[Checkout] ✅ Subscription actualizada correctamente:', subscription);
       
       Alert.alert(
         '¡Pago Exitoso!',
-        'Tu suscripción ha sido activada correctamente',
+        `Tu suscripción ha sido activada correctamente. Plan: ${subscription.plan.toUpperCase()}`,
         [
           {
             text: 'OK',
@@ -56,11 +113,11 @@ export default function CheckoutScreen() {
           },
         ]
       );
-    } catch (error) {
-      console.error('[Checkout] Error al actualizar subscription:', error);
+    } catch (error: any) {
+      console.error('[Checkout] ❌ Error al actualizar subscription:', error);
       Alert.alert(
         'Pago Exitoso',
-        'Tu suscripción ha sido activada. Refrescando datos...',
+        'Tu pago fue procesado. La suscripción se actualizará en breve. Si no ves el cambio, recarga la app.',
         [
           {
             text: 'OK',
@@ -138,7 +195,19 @@ export default function CheckoutScreen() {
         }}
         onError={(syntheticEvent) => {
           const { nativeEvent } = syntheticEvent;
+          const errorUrl = nativeEvent.url;
           console.error('[Checkout] WebView error:', nativeEvent);
+          
+          // Si el error es por una redirección a localhost (como subscription-success),
+          // no es realmente un error, es la redirección de Stripe
+          if (errorUrl && (errorUrl.includes('success') || errorUrl.includes('subscription-success'))) {
+            console.log('[Checkout] ⚠️ Error de WebView pero detectada URL de éxito, procesando...');
+            const sessionIdMatch = errorUrl.match(/[?&]session_id=([^&]+)/);
+            const sessionId = sessionIdMatch ? sessionIdMatch[1] : null;
+            handlePaymentSuccess(sessionId);
+            return;
+          }
+          
           setLoading(false);
           Alert.alert(
             'Error',
