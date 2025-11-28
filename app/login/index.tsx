@@ -12,38 +12,9 @@ export default function LoginScreen() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    // Verificar si ya hay sesión activa y redirigir
-    checkExistingAuth();
-  }, []);
-
-  const checkExistingAuth = async () => {
-    try {
-      const token = await SecureStore.getItemAsync('userToken');
-      if (token) {
-        // Verificar que el token sea válido
-        try {
-          const parts = token.split('.');
-          if (parts.length === 3) {
-            const payload = JSON.parse(atob(parts[1]));
-            const now = Math.floor(Date.now() / 1000);
-            
-            if (payload.exp && payload.exp > now) {
-              // Token válido - redirigir a dashboard
-              router.replace('/dashboard');
-              return;
-            }
-          }
-        } catch (e) {
-          // Token inválido, continuar mostrando login
-        }
-      }
-      // Si no hay token o es inválido, mostrar login (no hacer nada)
-    } catch (error) {
-      console.log('[Login] Error verificando token:', error);
-      // En caso de error, mostrar login
-    }
-  };
+  // ELIMINADO: No verificar token automáticamente
+  // El login SIEMPRE se muestra primero
+  // Solo redirige después de un login exitoso
 
   const handleLogin = async () => {
     if (!username.trim() || !password.trim()) {
