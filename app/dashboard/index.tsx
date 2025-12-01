@@ -3,7 +3,7 @@ import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { Search, ScanBarcode, History, Shield } from 'lucide-react-native';
+import { Search, ScanBarcode, History, Shield, HelpCircle } from 'lucide-react-native';
 import SubscriptionBanner from '../../components/SubscriptionBanner';
 import { useSubscription } from '../../hooks/useSubscription';
 import * as SecureStore from 'expo-secure-store';
@@ -61,6 +61,13 @@ export default function DashboardScreen() {
                 <Shield size={20} color="#a855f7" />
               </TouchableOpacity>
             )}
+            <TouchableOpacity
+              onPress={() => router.push('/help')}
+              className="bg-slate-800 p-2 rounded-lg border border-slate-700"
+              activeOpacity={0.8}
+            >
+              <HelpCircle size={20} color="#06b6d4" />
+            </TouchableOpacity>
             <TouchableOpacity
               onPress={() => router.push('/history')}
               className="bg-slate-800 p-2 rounded-lg border border-slate-700"
@@ -120,9 +127,22 @@ export default function DashboardScreen() {
           </Text>
           
           {/* Espacio publicitario - Ocupa todo el espacio */}
-          <View className="bg-slate-800/30 rounded-xl p-12 border border-slate-700/30 items-center justify-center mb-24" style={{ minHeight: 200 }}>
+          <View className="bg-slate-800/30 rounded-xl p-12 border border-slate-700/30 items-center justify-center mb-6" style={{ minHeight: 200 }}>
             <Text className="text-slate-500 text-sm text-center" style={{ textAlign: 'center' }}>Espacio Publicitario Disponible</Text>
           </View>
+        </View>
+
+        {/* Link a Acerca de */}
+        <View className="px-6 mb-8">
+          <TouchableOpacity
+            onPress={() => router.push('/about')}
+            className="bg-slate-800/50 rounded-xl p-4 border border-slate-700/50"
+            activeOpacity={0.8}
+          >
+            <Text className="text-slate-400 text-center text-sm">
+              Acerca de TecniFlux
+            </Text>
+          </TouchableOpacity>
         </View>
       </ScrollView>
 

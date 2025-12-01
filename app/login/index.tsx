@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, Alert, Linking } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Zap, Eye, EyeOff } from 'lucide-react-native';
 import { authAPI } from '../services/api';
@@ -108,7 +108,16 @@ export default function LoginScreen() {
           </Text>
         </TouchableOpacity>
 
-        <Text className="text-slate-500 text-center mt-8 text-sm">
+        <TouchableOpacity 
+          onPress={() => Linking.openURL('https://klickifyagency.com')}
+          className="mt-8 items-center"
+          activeOpacity={0.8}
+        >
+          <Text className="text-slate-500 text-xs">Powered by</Text>
+          <Text className="text-slate-400 text-sm font-semibold mt-1">Klickify Agency ™</Text>
+        </TouchableOpacity>
+
+        <Text className="text-slate-500 text-center mt-4 text-sm">
           TecniFlux ™ 2026 - Acceso a más de 30,000 diagramas
         </Text>
       </View>

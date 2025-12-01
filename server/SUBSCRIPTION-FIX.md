@@ -125,3 +125,4 @@ El frontend ahora:
 - Manejo del evento `checkout.session.completed`
 - Conexión con la base de datos para actualizar suscripciones
 
+
