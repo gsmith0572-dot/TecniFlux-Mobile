@@ -186,7 +186,7 @@ export default function SearchScreen() {
 
   return (
     <View className="flex-1 bg-slate-900">
-      <View className="flex-row items-center justify-between px-4 py-4 bg-slate-900 border-b border-slate-800">
+      <View className="flex-row items-center justify-between px-4 pt-12 pb-4 bg-slate-900 border-b border-slate-800">
         <TouchableOpacity 
           onPress={() => router.back()}
           className="bg-slate-800 p-3 rounded-full"
