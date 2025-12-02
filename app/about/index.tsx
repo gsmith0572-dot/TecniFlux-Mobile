@@ -3,6 +3,7 @@ import { StatusBar } from 'expo-status-bar';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { ArrowLeft, ExternalLink } from 'lucide-react-native';
+import { Image } from 'expo-image';
 
 export default function AboutScreen() {
   const router = useRouter();
@@ -25,18 +26,20 @@ export default function AboutScreen() {
 
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
         <View className="px-6 py-8">
-          {/* Logo Placeholder */}
+          {/* Logo */}
           <View className="items-center mb-8">
-            <View className="w-30 h-30 bg-slate-800 rounded-2xl items-center justify-center border border-slate-700" style={{ width: 120, height: 120 }}>
-              <Text className="text-slate-500 text-4xl font-bold">TF</Text>
-            </View>
+            <Image
+              source={{ uri: 'https://drive.google.com/uc?export=download&id=1IIk35wVni5Z95p52lFPUO8mTYE3flIcT' }}
+              style={{ width: 120, height: 120 }}
+              contentFit="contain"
+            />
           </View>
 
           {/* Versión */}
           <View className="items-center mb-6">
             <Text className="text-white text-xl font-bold mb-2">TecniFlux v1.0.0</Text>
             <Text className="text-slate-300 text-base text-center">
-              Más de 17,000 diagramas técnicos automotrices
+              Más de 30,000 diagramas técnicos automotrices
             </Text>
           </View>
 

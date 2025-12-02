@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, FlatList, Alert, ScrollView } from 'react-native';
 import { useRouter } from 'expo-router';
-import { FileText, LogOut, ChevronDown, AlertCircle } from 'lucide-react-native';
+import { FileText, LogOut, ChevronDown, AlertCircle, ArrowLeft } from 'lucide-react-native';
 import { diagramAPI } from '../services/api';
 import * as SecureStore from 'expo-secure-store';
 import { useSubscription } from '../../hooks/useSubscription';
@@ -200,6 +200,15 @@ export default function SearchScreen() {
           </View>
         </View>
       </View>
+
+      {/* Botón Atrás */}
+      <TouchableOpacity 
+        onPress={() => router.back()}
+        className="absolute top-4 left-4 bg-slate-800/80 p-3 rounded-full z-10"
+        activeOpacity={0.8}
+      >
+        <ArrowLeft size={24} color="white" />
+      </TouchableOpacity>
 
       <View className="px-6 py-6">
         <View className="mb-4">
