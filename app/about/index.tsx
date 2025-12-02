@@ -28,7 +28,7 @@ export default function AboutScreen() {
         <View className="px-6 py-8">
           <View className="items-center mb-6">
             <Image
-              source={{ uri: 'https://drive.google.com/uc?export=download&id=1IIk35wVni5Z95p52lFPUO8mTYE3flIcT' }}
+              source={require('../../assets/images/tecniflux-logo.png')}
               style={{ width: 120, height: 120 }}
               contentFit="contain"
             />
