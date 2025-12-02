@@ -186,29 +186,25 @@ export default function SearchScreen() {
 
   return (
     <View className="flex-1 bg-slate-900">
-      <View className="bg-slate-800 pt-14 pb-6 px-6 border-b border-slate-700">
-        <View className="flex-row items-center justify-between">
-          <View className="flex-1" />
-          <Text className="text-white text-2xl font-bold">TecniFlux</Text>
-          <View className="flex-1 items-end">
-            <TouchableOpacity
-              onPress={handleLogout}
-              className="bg-red-500/20 p-2 rounded-lg border border-red-500/30"
-            >
-              <LogOut size={24} color="#ef4444" />
-            </TouchableOpacity>
-          </View>
-        </View>
+      <View className="flex-row items-center justify-between px-4 py-4 bg-slate-900 border-b border-slate-800">
+        <TouchableOpacity 
+          onPress={() => router.back()}
+          className="bg-slate-800 p-3 rounded-full"
+          activeOpacity={0.8}
+        >
+          <ArrowLeft size={24} color="white" />
+        </TouchableOpacity>
+        
+        <Text className="text-white text-xl font-bold">TecniFlux</Text>
+        
+        <TouchableOpacity 
+          onPress={handleLogout}
+          className="bg-red-500/20 p-3 rounded-full border border-red-500/30"
+          activeOpacity={0.8}
+        >
+          <LogOut size={24} color="#ef4444" />
+        </TouchableOpacity>
       </View>
-
-      {/* Botón Atrás */}
-      <TouchableOpacity 
-        onPress={() => router.back()}
-        className="absolute top-4 left-4 z-50 bg-slate-800/90 p-3 rounded-full border border-slate-700"
-        activeOpacity={0.8}
-      >
-        <ArrowLeft size={24} color="white" />
-      </TouchableOpacity>
 
       <View className="px-6 py-6">
         <View className="mb-4">

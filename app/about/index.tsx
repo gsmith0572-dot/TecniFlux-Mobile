@@ -26,19 +26,14 @@ export default function AboutScreen() {
 
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
         <View className="px-6 py-8">
-          {/* Logo */}
-          <View className="items-center mb-8">
+          {/* Versión */}
+          <View className="items-center mb-6">
             <Image
               source={{ uri: 'https://drive.google.com/uc?export=download&id=1IIk35wVni5Z95p52lFPUO8mTYE3flIcT' }}
               style={{ width: 120, height: 120 }}
               contentFit="contain"
-              className="mb-4"
             />
-          </View>
-
-          {/* Versión */}
-          <View className="items-center mb-6">
-            <Text className="text-white text-xl font-bold mb-2">TecniFlux v1.0.0</Text>
+            <Text className="text-white text-xl font-bold mb-2 mt-4">TecniFlux v1.0.0</Text>
             <Text className="text-slate-300 text-base text-center">
               Más de 30,000 diagramas técnicos automotrices
             </Text>
