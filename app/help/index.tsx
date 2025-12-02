@@ -3,6 +3,7 @@ import { StatusBar } from 'expo-status-bar';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { HelpCircle, MessageCircle, ArrowLeft, Phone, Mail } from 'lucide-react-native';
+import { Image } from 'expo-image';
 import { useState } from 'react';
 
 export default function HelpScreen() {
@@ -58,6 +59,14 @@ export default function HelpScreen() {
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
         {/* Sección FAQ */}
         <View className="px-6 mt-6">
+          <View className="items-center mb-6">
+            <Image
+              source={require('../../assets/images/tecniflux-logo.png')}
+              style={{ width: 100, height: 100 }}
+              contentFit="contain"
+            />
+          </View>
+
           <View className="flex-row items-center mb-4">
             <HelpCircle size={24} color="#06b6d4" />
             <Text className="text-white text-lg font-bold ml-2">Preguntas Frecuentes</Text>
