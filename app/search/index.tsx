@@ -208,7 +208,6 @@ export default function SearchScreen() {
 
       <View className="px-6 py-6">
         <View className="mb-4">
-          <Text className="text-slate-400 text-sm mb-2 ml-1">Marca del vehículo</Text>
           <TouchableOpacity
             onPress={() => {
               setShowMakeDropdown(!showMakeDropdown);
@@ -243,7 +242,6 @@ export default function SearchScreen() {
         </View>
 
         <View className="mb-4">
-          <Text className="text-slate-400 text-sm mb-2 ml-1">Año (opcional)</Text>
           <TouchableOpacity
             onPress={() => {
               setShowYearDropdown(!showYearDropdown);
