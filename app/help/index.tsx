@@ -62,8 +62,9 @@ export default function HelpScreen() {
           <View className="items-center mb-6">
             <Image
               source={require('../../assets/images/tecniflux-logo.png')}
-              style={{ width: 100, height: 100 }}
+              style={{ width: 150, height: 150 }}
               contentFit="contain"
+              className="bg-transparent"
             />
           </View>
 

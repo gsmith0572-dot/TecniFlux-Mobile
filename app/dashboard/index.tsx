@@ -47,11 +47,14 @@ export default function DashboardScreen() {
       
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
         {/* Header */}
-        <View className="flex-row justify-between items-center px-6 py-4">
-          <View className="flex-row items-center gap-3">
+        <View className="px-6 py-4">
+          {/* Línea 1: Saludo */}
+          <View className="mb-3">
             <Text className="text-white text-xl font-bold">Hola, George</Text>
           </View>
-          <View className="flex-row items-center gap-3">
+          
+          {/* Línea 2: Badges e iconos */}
+          <View className="flex-row items-center justify-between">
             {isAdmin && (
               <TouchableOpacity
                 onPress={() => router.push('/admin')}

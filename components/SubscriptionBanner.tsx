@@ -109,7 +109,7 @@ export default function SubscriptionBanner() {
         className="ml-2"
         activeOpacity={0.8}
       >
-        <Text className={`${colors.text} text-sm font-bold`}>MEJORAR →</Text>
+        <Text className={`${colors.text} text-sm font-bold`}>PLANES →</Text>
       </TouchableOpacity>
     </TouchableOpacity>
   );
