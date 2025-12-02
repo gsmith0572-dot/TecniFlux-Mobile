@@ -32,6 +32,7 @@ export default function AboutScreen() {
               source={{ uri: 'https://drive.google.com/uc?export=download&id=1IIk35wVni5Z95p52lFPUO8mTYE3flIcT' }}
               style={{ width: 120, height: 120 }}
               contentFit="contain"
+              className="mb-4"
             />
           </View>
 

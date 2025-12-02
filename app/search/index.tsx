@@ -204,7 +204,7 @@ export default function SearchScreen() {
       {/* Botón Atrás */}
       <TouchableOpacity 
         onPress={() => router.back()}
-        className="absolute top-4 left-4 bg-slate-800/80 p-3 rounded-full z-10"
+        className="absolute top-4 left-4 z-50 bg-slate-800/90 p-3 rounded-full border border-slate-700"
         activeOpacity={0.8}
       >
         <ArrowLeft size={24} color="white" />
