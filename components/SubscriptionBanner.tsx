@@ -116,7 +116,7 @@ export default function SubscriptionBanner() {
         style={styles.planesButton}
         activeOpacity={0.8}
       >
-        <Text style={styles.planesButtonText}>PLANES →</Text>
+        <Text style={[styles.planesButtonText, { color: colors.textColor }]}>PLANES →</Text>
       </TouchableOpacity>
     </TouchableOpacity>
   );
