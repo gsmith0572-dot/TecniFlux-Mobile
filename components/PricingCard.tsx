@@ -181,7 +181,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     borderWidth: 2,
     overflow: 'hidden',
-    backgroundColor: 'rgba(15, 23, 42, 0.5)',
+    backgroundColor: '#1e293b', // slate-800
     marginBottom: 16,
   },
   header: {
@@ -253,7 +253,7 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   price: {
-    color: '#ffffff',
+    color: '#06b6d4', // cyan-500
     fontSize: 48,
     fontWeight: 'bold',
   },
@@ -271,7 +271,7 @@ const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 24,
     paddingVertical: 24,
-    backgroundColor: 'rgba(15, 23, 42, 0.5)',
+    backgroundColor: '#1e293b', // slate-800
     maxHeight: 320,
   },
   featuresContent: {

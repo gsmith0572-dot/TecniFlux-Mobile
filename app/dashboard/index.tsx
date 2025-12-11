@@ -43,7 +43,7 @@ export default function DashboardScreen() {
 
   const getPlanBadgeStyle = () => {
     if (subscription?.plan === 'pro') {
-      return { backgroundColor: 'rgba(168, 85, 247, 0.2)', borderColor: 'rgba(168, 85, 247, 0.3)' };
+      return { backgroundColor: 'rgba(22, 163, 74, 0.3)', borderColor: 'rgba(34, 197, 94, 0.5)' }; // verde oscuro
     } else if (subscription?.plan === 'premium') {
       return { backgroundColor: 'rgba(6, 182, 212, 0.2)', borderColor: 'rgba(6, 182, 212, 0.3)' };
     } else if (subscription?.plan === 'plus') {
@@ -54,7 +54,7 @@ export default function DashboardScreen() {
 
   const getPlanTextStyle = () => {
     if (subscription?.plan === 'pro') {
-      return { color: '#c084fc' }; // purple-300
+      return { color: '#4ade80' }; // green-400 (verde claro)
     } else if (subscription?.plan === 'premium') {
       return { color: '#67e8f9' }; // cyan-300
     } else if (subscription?.plan === 'plus') {
@@ -83,7 +83,7 @@ export default function DashboardScreen() {
                 style={styles.adminButton}
                 activeOpacity={0.8}
               >
-                <Shield size={20} color="#a855f7" />
+                <Shield size={20} color="#22d3ee" />
               </TouchableOpacity>
             )}
             <TouchableOpacity
@@ -191,11 +191,11 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   adminButton: {
-    backgroundColor: 'rgba(168, 85, 247, 0.2)',
+    backgroundColor: '#1e293b', // slate-800
     padding: 8,
     borderRadius: 8,
     borderWidth: 1,
-    borderColor: 'rgba(168, 85, 247, 0.3)',
+    borderColor: '#06b6d4', // cyan-500
   },
   iconButton: {
     backgroundColor: '#1e293b',
