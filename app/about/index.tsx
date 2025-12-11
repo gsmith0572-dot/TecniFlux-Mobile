@@ -1,4 +1,4 @@
-import { View, Text, TouchableOpacity, ScrollView, Linking } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, Linking, StyleSheet } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -9,24 +9,24 @@ export default function AboutScreen() {
   const router = useRouter();
 
   return (
-    <SafeAreaView className="flex-1 bg-slate-900">
+    <SafeAreaView style={styles.container}>
       <StatusBar style="light" />
       
       {/* Header */}
-      <View className="flex-row items-center px-6 py-4 border-b border-slate-800">
+      <View style={styles.header}>
         <TouchableOpacity
           onPress={() => router.back()}
-          className="mr-4"
+          style={styles.backButton}
           activeOpacity={0.7}
         >
           <ArrowLeft size={24} color="#cbd5e1" />
         </TouchableOpacity>
-        <Text className="text-white text-xl font-bold">Acerca de TecniFlux</Text>
+        <Text style={styles.headerTitle}>Acerca de TecniFlux</Text>
       </View>
 
-      <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
-        <View className="px-6 py-8">
-          <View className="items-center mb-6">
+      <ScrollView style={styles.flex1} showsVerticalScrollIndicator={false}>
+        <View style={styles.content}>
+          <View style={styles.logoContainer}>
             <Image
               source={require('../../assets/images/tecniflux-logo.png')}
               style={{ width: 120, height: 120 }}
@@ -35,51 +35,51 @@ export default function AboutScreen() {
           </View>
 
           {/* Versión */}
-          <View className="items-center mb-6">
-            <Text className="text-white text-xl font-bold mb-2">TecniFlux v1.0.0</Text>
-            <Text className="text-slate-300 text-base text-center">
+          <View style={styles.versionContainer}>
+            <Text style={styles.versionTitle}>TecniFlux v1.0.0</Text>
+            <Text style={styles.versionSubtitle}>
               Más de 30,000 diagramas técnicos automotrices
             </Text>
           </View>
 
           {/* Desarrollado por */}
-          <View className="bg-slate-800 rounded-xl p-6 mb-6 border border-slate-700">
-            <Text className="text-slate-400 text-sm mb-3">Desarrollado por</Text>
+          <View style={styles.developerCard}>
+            <Text style={styles.developerLabel}>Desarrollado por</Text>
             <TouchableOpacity
               onPress={() => Linking.openURL('https://klickifyagency.com')}
-              className="flex-row items-center"
+              style={styles.developerLink}
               activeOpacity={0.8}
             >
-              <Text className="text-white text-lg font-bold mr-2">Klickify Agency ™</Text>
+              <Text style={styles.developerName}>Klickify Agency ™</Text>
               <ExternalLink size={18} color="#06b6d4" />
             </TouchableOpacity>
           </View>
 
           {/* Copyright */}
-          <View className="items-center mb-6">
-            <Text className="text-slate-500 text-xs text-center">
+          <View style={styles.copyrightContainer}>
+            <Text style={styles.copyrightText}>
               © 2025 Klickify Agency. Todos los derechos reservados.
             </Text>
           </View>
 
           {/* Links Legales */}
-          <View className="gap-3">
+          <View style={styles.linksContainer}>
             <TouchableOpacity
               onPress={() => router.push('/terms')}
-              className="bg-slate-800 rounded-xl p-4 border border-slate-700"
+              style={styles.linkButton}
               activeOpacity={0.8}
             >
-              <Text className="text-slate-300 text-center font-semibold">
+              <Text style={styles.linkButtonText}>
                 Términos de Servicio
               </Text>
             </TouchableOpacity>
 
             <TouchableOpacity
               onPress={() => router.push('/privacy')}
-              className="bg-slate-800 rounded-xl p-4 border border-slate-700"
+              style={styles.linkButton}
               activeOpacity={0.8}
             >
-              <Text className="text-slate-300 text-center font-semibold">
+              <Text style={styles.linkButtonText}>
                 Política de Privacidad
               </Text>
             </TouchableOpacity>
@@ -90,3 +90,98 @@ export default function AboutScreen() {
   );
 }
 
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#0f172a',
+  },
+  flex1: {
+    flex: 1,
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 24,
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#1e293b',
+  },
+  backButton: {
+    marginRight: 16,
+  },
+  headerTitle: {
+    color: '#ffffff',
+    fontSize: 20,
+    fontWeight: 'bold',
+  },
+  content: {
+    paddingHorizontal: 24,
+    paddingVertical: 32,
+  },
+  logoContainer: {
+    alignItems: 'center',
+    marginBottom: 24,
+  },
+  versionContainer: {
+    alignItems: 'center',
+    marginBottom: 24,
+  },
+  versionTitle: {
+    color: '#ffffff',
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginBottom: 8,
+  },
+  versionSubtitle: {
+    color: '#cbd5e1',
+    fontSize: 16,
+    textAlign: 'center',
+  },
+  developerCard: {
+    backgroundColor: '#1e293b',
+    borderRadius: 12,
+    padding: 24,
+    marginBottom: 24,
+    borderWidth: 1,
+    borderColor: '#334155',
+  },
+  developerLabel: {
+    color: '#94a3b8',
+    fontSize: 14,
+    marginBottom: 12,
+  },
+  developerLink: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  developerName: {
+    color: '#ffffff',
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginRight: 8,
+  },
+  copyrightContainer: {
+    alignItems: 'center',
+    marginBottom: 24,
+  },
+  copyrightText: {
+    color: '#64748b',
+    fontSize: 12,
+    textAlign: 'center',
+  },
+  linksContainer: {
+    gap: 12,
+  },
+  linkButton: {
+    backgroundColor: '#1e293b',
+    borderRadius: 12,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: '#334155',
+  },
+  linkButtonText: {
+    color: '#cbd5e1',
+    textAlign: 'center',
+    fontWeight: '600',
+  },
+});

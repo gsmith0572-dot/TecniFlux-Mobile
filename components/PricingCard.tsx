@@ -1,4 +1,4 @@
-import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, StyleSheet } from 'react-native';
 import { Check, Zap, Crown, Sparkles, TrendingUp } from 'lucide-react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { SubscriptionPlan } from '../types/subscription';
@@ -21,6 +21,8 @@ export default function PricingCard({ plan, onSelect, loading = false, isCurrent
         return <Zap size={48} color="#06b6d4" />;
       case 'pro':
         return <Crown size={48} color="rgb(168, 85, 247)" />;
+      default:
+        return <Sparkles size={48} color="#94a3b8" />;
     }
   };
 
@@ -28,39 +30,49 @@ export default function PricingCard({ plan, onSelect, loading = false, isCurrent
     switch (plan.id) {
       case 'free':
         return {
-          borderColor: 'border-slate-600',
-          headerGradient: ['rgba(30, 41, 59, 0.5)', 'rgba(15, 23, 42, 0.5)'], // bg-slate-800/50 con gradient sutil
-          overlayGradient: ['rgba(30, 41, 59, 0.3)', 'rgba(15, 23, 42, 0.3)'], // gradient overlay
-          iconColor: '#94a3b8', // slate-400
-          buttonColor: 'bg-slate-600',
-          checkColor: '#10b981',
+          borderColor: '#475569',
+          headerGradient: ['rgba(30, 41, 59, 0.5)', 'rgba(15, 23, 42, 0.5)'],
+          overlayGradient: ['rgba(30, 41, 59, 0.3)', 'rgba(15, 23, 42, 0.3)'],
+          iconColor: '#94a3b8',
+          buttonColor: '#475569',
+          checkColor: '#22c55e',
         };
       case 'plus':
         return {
-          borderColor: 'border-amber-500/50',
-          headerGradient: ['rgba(245, 158, 11, 0.2)', 'rgba(249, 115, 22, 0.2)'], // from-amber-500/20 to-orange-500/20
+          borderColor: 'rgba(245, 158, 11, 0.5)',
+          headerGradient: ['rgba(245, 158, 11, 0.2)', 'rgba(249, 115, 22, 0.2)'],
           overlayGradient: null,
-          iconColor: '#fbbf24', // amber-400
-          buttonColor: 'bg-amber-500',
-          checkColor: '#10b981',
+          iconColor: '#fbbf24',
+          buttonColor: '#f59e0b',
+          checkColor: '#22c55e',
         };
       case 'premium':
         return {
-          borderColor: 'border-cyan-500/50',
-          headerGradient: ['rgba(6, 182, 212, 0.2)', 'rgba(59, 130, 246, 0.2)'], // from-cyan-500/20 to-blue-500/20
+          borderColor: 'rgba(6, 182, 212, 0.5)',
+          headerGradient: ['rgba(6, 182, 212, 0.2)', 'rgba(59, 130, 246, 0.2)'],
           overlayGradient: null,
-          iconColor: '#22d3ee', // cyan-400
-          buttonColor: 'bg-cyan-500',
-          checkColor: '#10b981',
+          iconColor: '#22d3ee',
+          buttonColor: '#06b6d4',
+          checkColor: '#22c55e',
         };
       case 'pro':
         return {
-          borderColor: 'border-purple-500/50',
-          headerGradient: ['rgba(168, 85, 247, 0.2)', 'rgba(236, 72, 153, 0.2)'], // from-purple-500/20 to-pink-500/20
+          borderColor: 'rgba(168, 85, 247, 0.5)',
+          headerGradient: ['rgba(168, 85, 247, 0.2)', 'rgba(236, 72, 153, 0.2)'],
           overlayGradient: null,
-          iconColor: 'rgb(168, 85, 247)', // purple-400
-          buttonColor: 'bg-purple-500',
-          checkColor: '#10b981',
+          iconColor: 'rgb(168, 85, 247)',
+          buttonColor: '#a855f7',
+          checkColor: '#22c55e',
+        };
+      default:
+        // Fallback a configuración 'free' para valores inesperados
+        return {
+          borderColor: '#475569',
+          headerGradient: ['rgba(30, 41, 59, 0.5)', 'rgba(15, 23, 42, 0.5)'],
+          overlayGradient: ['rgba(30, 41, 59, 0.3)', 'rgba(15, 23, 42, 0.3)'],
+          iconColor: '#94a3b8',
+          buttonColor: '#475569',
+          checkColor: '#22c55e',
         };
     }
   };
@@ -71,17 +83,17 @@ export default function PricingCard({ plan, onSelect, loading = false, isCurrent
     : `${plan.searchLimit} búsquedas/mes`;
 
   return (
-    <View className={`h-[620px] rounded-2xl border-2 ${config.borderColor} overflow-hidden bg-slate-900/50`}>
+    <View style={[styles.card, { borderColor: config.borderColor }]}>
       {/* Header con gradient */}
-      <View className="px-6 py-8 relative">
+      <View style={styles.header}>
         {config.overlayGradient ? (
           <>
-            <View style={{ backgroundColor: 'rgba(30, 41, 59, 0.5)' }} className="absolute inset-0" />
+            <View style={[styles.overlay, { backgroundColor: 'rgba(30, 41, 59, 0.5)' }]} />
             <LinearGradient
               colors={config.overlayGradient}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
-              style={{ position: 'absolute', left: 0, right: 0, top: 0, bottom: 0 }}
+              style={styles.gradient}
             />
           </>
         ) : (
@@ -89,45 +101,44 @@ export default function PricingCard({ plan, onSelect, loading = false, isCurrent
             colors={config.headerGradient}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
-            style={{ position: 'absolute', left: 0, right: 0, top: 0, bottom: 0 }}
+            style={styles.gradient}
           />
         )}
         {plan.highlighted && (
-          <View className="absolute top-4 right-4 bg-white/20 px-3 py-1 rounded-full z-10">
-            <Text className="text-white text-xs font-bold">POPULAR</Text>
+          <View style={styles.popularBadge}>
+            <Text style={styles.popularText}>POPULAR</Text>
           </View>
         )}
 
         {plan.badge && (
-          <View className="absolute top-4 left-4 bg-purple-500/20 px-3 py-1 rounded-full border border-purple-500/30 z-10">
-            <Text className="text-purple-300 text-xs font-bold">{plan.badge}</Text>
+          <View style={styles.planBadge}>
+            <Text style={styles.planBadgeText}>{plan.badge}</Text>
           </View>
         )}
 
-        <View className="items-center mt-4 relative z-10">
+        <View style={styles.headerContent}>
           {getIcon()}
-          <Text className="text-white text-3xl font-bold mt-4">{plan.name}</Text>
-          <View className="flex-row items-baseline mt-2">
-            <Text className="text-white text-5xl font-bold">${plan.price}</Text>
-            <Text className="text-slate-300 text-xl ml-2">/mes</Text>
+          <Text style={styles.planName}>{plan.name}</Text>
+          <View style={styles.priceRow}>
+            <Text style={styles.price}>${plan.price}</Text>
+            <Text style={styles.priceUnit}>/mes</Text>
           </View>
-          <Text className="text-slate-300 text-base mt-2">{searchLimitText}</Text>
+          <Text style={styles.searchLimit}>{searchLimitText}</Text>
         </View>
       </View>
 
       {/* Features con ScrollView y altura fija */}
       <ScrollView
-        className="flex-1 px-6 py-6 bg-slate-900/50"
+        style={styles.featuresContainer}
+        contentContainerStyle={styles.featuresContent}
         showsVerticalScrollIndicator={false}
-        style={{ maxHeight: 320 }}
-        contentContainerStyle={{ paddingBottom: 8 }}
       >
         {plan.features.map((feature, index) => (
-          <View key={index} className="flex-row items-start mb-4">
-            <View className="mt-0.5">
+          <View key={index} style={styles.featureRow}>
+            <View style={styles.checkContainer}>
               <Check size={20} color={config.checkColor} />
             </View>
-            <Text className="text-slate-300 text-base ml-3 flex-1 leading-6">
+            <Text style={styles.featureText}>
               {feature}
             </Text>
           </View>
@@ -135,26 +146,26 @@ export default function PricingCard({ plan, onSelect, loading = false, isCurrent
       </ScrollView>
 
       {/* Espaciador */}
-      <View className="h-4" />
+      <View style={styles.spacer} />
 
       {/* Botón SIEMPRE visible en bottom - FUERA del ScrollView */}
-      <View className="px-6 pb-6">
+      <View style={styles.buttonContainer}>
         {isCurrentPlan ? (
-          <View className="bg-green-500/20 py-4 rounded-xl border border-green-500/30">
-            <Text className="text-green-400 text-center font-bold text-lg">Plan Actual</Text>
+          <View style={styles.currentPlanButton}>
+            <Text style={styles.currentPlanText}>Plan Actual</Text>
           </View>
         ) : plan.id === 'free' ? (
-          <View className="bg-slate-700 py-4 rounded-xl">
-            <Text className="text-slate-400 text-center font-bold text-lg">Plan Gratuito</Text>
+          <View style={styles.freePlanButton}>
+            <Text style={styles.freePlanText}>Plan Gratuito</Text>
           </View>
         ) : (
           <TouchableOpacity
             onPress={() => onSelect(plan.id)}
             disabled={loading}
-            className={`${config.buttonColor} rounded-xl py-4 ${loading ? 'opacity-50' : ''}`}
+            style={[styles.selectButton, { backgroundColor: config.buttonColor }, loading && styles.selectButtonDisabled]}
             activeOpacity={0.8}
           >
-            <Text className="text-white text-center font-bold text-lg">
+            <Text style={styles.selectButtonText}>
               {loading ? 'Procesando...' : 'Seleccionar Plan'}
             </Text>
           </TouchableOpacity>
@@ -163,3 +174,166 @@ export default function PricingCard({ plan, onSelect, loading = false, isCurrent
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  card: {
+    height: 620,
+    borderRadius: 16,
+    borderWidth: 2,
+    overflow: 'hidden',
+    backgroundColor: '#1e293b', // slate-800
+    marginBottom: 16,
+  },
+  header: {
+    paddingHorizontal: 24,
+    paddingVertical: 32,
+    position: 'relative',
+  },
+  overlay: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    top: 0,
+    bottom: 0,
+  },
+  gradient: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    top: 0,
+    bottom: 0,
+  },
+  popularBadge: {
+    position: 'absolute',
+    top: 16,
+    right: 16,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 9999,
+    zIndex: 10,
+  },
+  popularText: {
+    color: '#ffffff',
+    fontSize: 12,
+    fontWeight: 'bold',
+  },
+  planBadge: {
+    position: 'absolute',
+    top: 16,
+    left: 16,
+    backgroundColor: 'rgba(168, 85, 247, 0.2)',
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 9999,
+    borderWidth: 1,
+    borderColor: 'rgba(168, 85, 247, 0.3)',
+    zIndex: 10,
+  },
+  planBadgeText: {
+    color: '#c084fc',
+    fontSize: 12,
+    fontWeight: 'bold',
+  },
+  headerContent: {
+    alignItems: 'center',
+    marginTop: 16,
+    position: 'relative',
+    zIndex: 10,
+  },
+  planName: {
+    color: '#ffffff',
+    fontSize: 30,
+    fontWeight: 'bold',
+    marginTop: 16,
+  },
+  priceRow: {
+    flexDirection: 'row',
+    alignItems: 'baseline',
+    marginTop: 8,
+  },
+  price: {
+    color: '#06b6d4', // cyan-500
+    fontSize: 48,
+    fontWeight: 'bold',
+  },
+  priceUnit: {
+    color: '#cbd5e1',
+    fontSize: 20,
+    marginLeft: 8,
+  },
+  searchLimit: {
+    color: '#cbd5e1',
+    fontSize: 16,
+    marginTop: 8,
+  },
+  featuresContainer: {
+    flex: 1,
+    paddingHorizontal: 24,
+    paddingVertical: 24,
+    backgroundColor: '#1e293b', // slate-800
+    maxHeight: 320,
+  },
+  featuresContent: {
+    paddingBottom: 8,
+  },
+  featureRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginBottom: 16,
+  },
+  checkContainer: {
+    marginTop: 2,
+  },
+  featureText: {
+    color: '#cbd5e1',
+    fontSize: 16,
+    marginLeft: 12,
+    flex: 1,
+    lineHeight: 24,
+  },
+  spacer: {
+    height: 16,
+  },
+  buttonContainer: {
+    paddingHorizontal: 24,
+    paddingBottom: 24,
+  },
+  currentPlanButton: {
+    backgroundColor: 'rgba(34, 197, 94, 0.2)',
+    paddingVertical: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: 'rgba(34, 197, 94, 0.3)',
+  },
+  currentPlanText: {
+    color: '#4ade80',
+    textAlign: 'center',
+    fontWeight: 'bold',
+    fontSize: 18,
+  },
+  freePlanButton: {
+    backgroundColor: '#334155',
+    paddingVertical: 16,
+    borderRadius: 12,
+  },
+  freePlanText: {
+    color: '#94a3b8',
+    textAlign: 'center',
+    fontWeight: 'bold',
+    fontSize: 18,
+  },
+  selectButton: {
+    borderRadius: 12,
+    paddingVertical: 16,
+  },
+  selectButtonDisabled: {
+    opacity: 0.5,
+  },
+  selectButtonText: {
+    color: '#ffffff',
+    textAlign: 'center',
+    fontWeight: 'bold',
+    fontSize: 18,
+  },
+});

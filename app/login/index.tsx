@@ -1,9 +1,12 @@
 import { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, Alert, Linking } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, Alert, Linking, StyleSheet, Dimensions } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Zap, Eye, EyeOff } from 'lucide-react-native';
 import { authAPI } from '../services/api';
 import * as SecureStore from 'expo-secure-store';
+
+const SCREEN_WIDTH = Dimensions.get('window').width;
+const MAX_CONTENT_WIDTH = 384;
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -35,22 +38,26 @@ export default function LoginScreen() {
     }
   };
 
+  const contentStyle = {
+    width: SCREEN_WIDTH > MAX_CONTENT_WIDTH ? MAX_CONTENT_WIDTH : SCREEN_WIDTH - 48, // 48 = padding horizontal * 2
+  };
+
   return (
-    <View className="flex-1 bg-slate-900 justify-center items-center px-6">
-      <View className="w-full max-w-sm">
-        <View className="items-center mb-8">
-          <View className="mb-4">
+    <View style={styles.container}>
+      <View style={[styles.content, contentStyle]}>
+        <View style={styles.header}>
+          <View style={styles.iconContainer}>
             <Zap size={80} color="#06b6d4" fill="#06b6d4" />
           </View>
-          <Text className="text-white text-5xl font-bold mb-2">TecniFlux</Text>
-          <Text className="text-slate-400 text-lg text-center">Diagramas Técnicos</Text>
-          <Text className="text-slate-400 text-lg text-center">Automotrices</Text>
+          <Text style={styles.title}>TecniFlux</Text>
+          <Text style={styles.subtitle}>Diagramas Técnicos</Text>
+          <Text style={styles.subtitle}>Automotrices</Text>
         </View>
 
-        <View className="mb-4">
-          <Text className="text-slate-400 text-sm mb-2 ml-1">Usuario</Text>
+        <View style={styles.inputContainer}>
+          <Text style={styles.label}>Usuario</Text>
           <TextInput
-            className="bg-slate-800 text-white rounded-xl px-4 py-4 border border-slate-700"
+            style={styles.input}
             placeholder="Ingresa tu usuario"
             placeholderTextColor="#64748b"
             value={username}
@@ -60,11 +67,11 @@ export default function LoginScreen() {
           />
         </View>
 
-        <View className="mb-6">
-          <Text className="text-slate-400 text-sm mb-2 ml-1">Contraseña</Text>
-          <View className="relative">
+        <View style={styles.passwordContainer}>
+          <Text style={styles.label}>Contraseña</Text>
+          <View style={styles.passwordInputWrapper}>
             <TextInput
-              className="bg-slate-800 text-white rounded-xl px-4 py-4 pr-12 border border-slate-700"
+              style={styles.passwordInput}
               placeholder="Ingresa tu contraseña"
               placeholderTextColor="#64748b"
               value={password}
@@ -74,7 +81,7 @@ export default function LoginScreen() {
             />
             <TouchableOpacity
               onPress={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-0 bottom-0 justify-center"
+              style={styles.eyeButton}
               activeOpacity={0.7}
             >
               {showPassword ? (
@@ -89,10 +96,10 @@ export default function LoginScreen() {
         <TouchableOpacity
           onPress={handleLogin}
           disabled={loading}
-          className={`rounded-xl py-4 ${loading ? 'bg-slate-700' : 'bg-cyan-500'}`}
+          style={[styles.loginButton, loading && styles.loginButtonDisabled]}
           activeOpacity={0.8}
         >
-          <Text className="text-white text-center font-bold text-lg">
+          <Text style={styles.loginButtonText}>
             {loading ? 'Iniciando sesión...' : 'Iniciar Sesión'}
           </Text>
         </TouchableOpacity>
@@ -100,27 +107,144 @@ export default function LoginScreen() {
         <TouchableOpacity
           onPress={() => router.push('/register')}
           disabled={loading}
-          className="mt-4"
+          style={styles.registerLink}
           activeOpacity={0.8}
         >
-          <Text className="text-cyan-400 text-center text-sm">
-            ¿No tienes cuenta? <Text className="font-bold">Crear Cuenta</Text>
+          <Text style={styles.registerText}>
+            ¿No tienes cuenta? <Text style={styles.registerTextBold}>Crear Cuenta</Text>
           </Text>
         </TouchableOpacity>
 
         <TouchableOpacity 
           onPress={() => Linking.openURL('https://klickifyagency.com')}
-          className="mt-8 items-center"
+          style={styles.footerLink}
           activeOpacity={0.8}
         >
-          <Text className="text-slate-500 text-xs">Powered by</Text>
-          <Text className="text-slate-400 text-sm font-semibold mt-1">Klickify Agency ™</Text>
+          <Text style={styles.footerText}>Powered by</Text>
+          <Text style={styles.footerTextBold}>Klickify Agency ™</Text>
         </TouchableOpacity>
 
-        <Text className="text-slate-500 text-center mt-4 text-sm">
+        <Text style={styles.copyright}>
           TecniFlux ™ 2026 - Acceso a más de 30,000 diagramas
         </Text>
       </View>
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#0f172a',
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 24,
+  },
+  content: {
+    // Width is set dynamically in component
+  },
+  header: {
+    alignItems: 'center',
+    marginBottom: 32,
+  },
+  iconContainer: {
+    marginBottom: 16,
+  },
+  title: {
+    color: '#ffffff',
+    fontSize: 48,
+    fontWeight: 'bold',
+    marginBottom: 8,
+  },
+  subtitle: {
+    color: '#94a3b8',
+    fontSize: 18,
+    textAlign: 'center',
+  },
+  inputContainer: {
+    marginBottom: 16,
+  },
+  passwordContainer: {
+    marginBottom: 24,
+  },
+  label: {
+    color: '#94a3b8',
+    fontSize: 14,
+    marginBottom: 8,
+    marginLeft: 4,
+  },
+  input: {
+    backgroundColor: '#1e293b',
+    color: '#ffffff',
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 16,
+    borderWidth: 1,
+    borderColor: '#334155',
+  },
+  passwordInputWrapper: {
+    position: 'relative',
+  },
+  passwordInput: {
+    backgroundColor: '#1e293b',
+    color: '#ffffff',
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 16,
+    paddingRight: 48,
+    borderWidth: 1,
+    borderColor: '#334155',
+  },
+  eyeButton: {
+    position: 'absolute',
+    right: 12,
+    top: 0,
+    bottom: 0,
+    justifyContent: 'center',
+  },
+  loginButton: {
+    borderRadius: 12,
+    paddingVertical: 16,
+    backgroundColor: '#06b6d4',
+  },
+  loginButtonDisabled: {
+    backgroundColor: '#334155',
+  },
+  loginButtonText: {
+    color: '#ffffff',
+    textAlign: 'center',
+    fontWeight: 'bold',
+    fontSize: 18,
+  },
+  registerLink: {
+    marginTop: 16,
+  },
+  registerText: {
+    color: '#22d3ee',
+    textAlign: 'center',
+    fontSize: 14,
+  },
+  registerTextBold: {
+    fontWeight: 'bold',
+  },
+  footerLink: {
+    marginTop: 32,
+    alignItems: 'center',
+  },
+  footerText: {
+    color: '#64748b',
+    fontSize: 12,
+  },
+  footerTextBold: {
+    color: '#94a3b8',
+    fontSize: 14,
+    fontWeight: '600',
+    marginTop: 4,
+  },
+  copyright: {
+    color: '#64748b',
+    textAlign: 'center',
+    marginTop: 16,
+    fontSize: 14,
+  },
+});
