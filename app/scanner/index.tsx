@@ -41,31 +41,31 @@ export default function ScannerScreen() {
   };
 
   if (!permission) {
-    return <View style={styles.blackContainer} />;
+    return <View className="flex-1 bg-black" />;
   }
 
   if (!permission.granted) {
     return (
-      <View style={styles.permissionContainer}>
-        <ScanBarcode size={64} color="#06b6d4" />
-        <Text style={styles.permissionTitle}>
+      <View className="flex-1 bg-slate-900 justify-center items-center px-6">
+        <ScanBarcode size={64} color="#2E8BFF" />
+        <Text className="text-white text-2xl font-bold mt-6 text-center">
           Necesitamos tu Cámara
         </Text>
-        <Text style={styles.permissionText}>
+        <Text className="text-slate-400 text-center mt-2 mb-8">
           Para escanear el código VIN del vehículo necesitamos acceso a la cámara.
         </Text>
-        <TouchableOpacity onPress={requestPermission} style={styles.permissionButton}>
-          <Text style={styles.permissionButtonText}>Conceder Permiso</Text>
+        <TouchableOpacity onPress={requestPermission} className="bg-cyan-500 py-4 px-8 rounded-xl w-full">
+          <Text className="text-slate-900 font-bold text-center text-lg">Conceder Permiso</Text>
         </TouchableOpacity>
-        <TouchableOpacity onPress={() => router.back()} style={styles.cancelButton}>
-          <Text style={styles.cancelButtonText}>Cancelar</Text>
+        <TouchableOpacity onPress={() => router.back()} className="mt-6">
+          <Text className="text-slate-500 font-bold">Cancelar</Text>
         </TouchableOpacity>
       </View>
     );
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView className="flex-1 bg-black">
       <Stack.Screen options={{ headerShown: false }} />
       {Platform.OS === 'android' && <StatusBar hidden />}
       <CameraView
@@ -74,168 +74,26 @@ export default function ScannerScreen() {
         onBarcodeScanned={scanned ? undefined : handleBarCodeScanned}
         barcodeScannerSettings={{ barcodeTypes: ["qr", "pdf417", "code128", "code39"] }}
       >
-        <View style={styles.overlay}>
-          <View style={styles.header}>
-            <Text style={styles.headerTitle}>Escáner VIN</Text>
-            <TouchableOpacity onPress={() => router.back()} style={styles.closeButton}>
-              <X color="#ffffff" size={24} />
+        <View className="flex-1 bg-black/60">
+          <View className="flex-row justify-between items-center px-6 pt-12 pb-6 bg-black/40">
+            <Text className="text-white font-bold text-lg">Escáner VIN</Text>
+            <TouchableOpacity onPress={() => router.back()} className="bg-slate-800/80 p-2 rounded-full">
+              <X color="#fff" size={24} />
             </TouchableOpacity>
           </View>
-          <View style={styles.scannerContent}>
-            <Text style={styles.scannerInstruction}>Apunta al código de barras</Text>
-            <View style={styles.scannerFrame}>
-              <View style={[styles.corner, styles.cornerTopLeft]} />
-              <View style={[styles.corner, styles.cornerTopRight]} />
-              <View style={[styles.corner, styles.cornerBottomLeft]} />
-              <View style={[styles.corner, styles.cornerBottomRight]} />
+          <View className="flex-1 justify-center items-center">
+            <Text className="text-white/80 font-bold mb-8 text-lg">Apunta al código de barras</Text>
+            <View className="w-72 h-48 border-2 border-cyan-400 rounded-xl bg-transparent relative">
+               <View className="absolute top-0 left-0 w-4 h-4 border-t-4 border-l-4 border-cyan-400 -mt-1 -ml-1" />
+               <View className="absolute top-0 right-0 w-4 h-4 border-t-4 border-r-4 border-cyan-400 -mt-1 -mr-1" />
+               <View className="absolute bottom-0 left-0 w-4 h-4 border-b-4 border-l-4 border-cyan-400 -mb-1 -ml-1" />
+               <View className="absolute bottom-0 right-0 w-4 h-4 border-b-4 border-r-4 border-cyan-400 -mb-1 -mr-1" />
             </View>
-            <Text style={styles.scannerSupport}>Soporta Código 39, 128 y PDF417</Text>
+            <Text className="text-slate-400 text-sm mt-4 px-10 text-center">Soporta Código 39, 128 y PDF417</Text>
           </View>
-          <View style={styles.bottomOverlay} />
+          <View className="h-32 bg-black/40" />
         </View>
       </CameraView>
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  blackContainer: {
-    flex: 1,
-    backgroundColor: '#000000',
-  },
-  container: {
-    flex: 1,
-    backgroundColor: '#000000',
-  },
-  permissionContainer: {
-    flex: 1,
-    backgroundColor: '#0f172a', // slate-900
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 24,
-  },
-  permissionTitle: {
-    color: '#ffffff',
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginTop: 24,
-    textAlign: 'center',
-  },
-  permissionText: {
-    color: '#94a3b8',
-    textAlign: 'center',
-    marginTop: 8,
-    marginBottom: 32,
-  },
-  permissionButton: {
-    backgroundColor: '#06b6d4', // cyan-500
-    paddingVertical: 16,
-    paddingHorizontal: 32,
-    borderRadius: 12,
-    width: '100%',
-  },
-  permissionButtonText: {
-    color: '#0f172a',
-    fontWeight: 'bold',
-    textAlign: 'center',
-    fontSize: 18,
-  },
-  cancelButton: {
-    marginTop: 24,
-  },
-  cancelButtonText: {
-    color: '#64748b',
-    fontWeight: 'bold',
-  },
-  overlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.6)',
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 24,
-    paddingTop: 48,
-    paddingBottom: 24,
-    backgroundColor: 'rgba(0, 0, 0, 0.4)',
-  },
-  headerTitle: {
-    color: '#ffffff',
-    fontWeight: 'bold',
-    fontSize: 18,
-  },
-  closeButton: {
-    backgroundColor: 'rgba(30, 41, 59, 0.8)', // slate-800/80
-    padding: 8,
-    borderRadius: 9999,
-  },
-  scannerContent: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  scannerInstruction: {
-    color: 'rgba(255, 255, 255, 0.8)',
-    fontWeight: 'bold',
-    marginBottom: 32,
-    fontSize: 18,
-  },
-  scannerFrame: {
-    width: 288, // w-72 = 18rem = 288px
-    height: 192, // h-48 = 12rem = 192px
-    borderWidth: 2,
-    borderColor: '#22d3ee', // cyan-400
-    borderRadius: 12,
-    backgroundColor: 'transparent',
-    position: 'relative',
-  },
-  corner: {
-    position: 'absolute',
-    width: 16,
-    height: 16,
-  },
-  cornerTopLeft: {
-    top: -1,
-    left: -1,
-    borderTopWidth: 4,
-    borderLeftWidth: 4,
-    borderTopColor: '#22d3ee', // cyan-400
-    borderLeftColor: '#22d3ee', // cyan-400
-  },
-  cornerTopRight: {
-    top: -1,
-    right: -1,
-    borderTopWidth: 4,
-    borderRightWidth: 4,
-    borderTopColor: '#22d3ee', // cyan-400
-    borderRightColor: '#22d3ee', // cyan-400
-  },
-  cornerBottomLeft: {
-    bottom: -1,
-    left: -1,
-    borderBottomWidth: 4,
-    borderLeftWidth: 4,
-    borderBottomColor: '#22d3ee', // cyan-400
-    borderLeftColor: '#22d3ee', // cyan-400
-  },
-  cornerBottomRight: {
-    bottom: -1,
-    right: -1,
-    borderBottomWidth: 4,
-    borderRightWidth: 4,
-    borderBottomColor: '#22d3ee', // cyan-400
-    borderRightColor: '#22d3ee', // cyan-400
-  },
-  scannerSupport: {
-    color: '#94a3b8',
-    fontSize: 14,
-    marginTop: 16,
-    paddingHorizontal: 40,
-    textAlign: 'center',
-  },
-  bottomOverlay: {
-    height: 128,
-    backgroundColor: 'rgba(0, 0, 0, 0.4)',
-  },
-});

@@ -1,10 +1,9 @@
 import { useState, useEffect } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, Alert, StyleSheet } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { useRouter } from 'expo-router';
 import { ArrowLeft, Users, DollarSign, TrendingUp, BarChart3, UserPlus, Calculator, Receipt, History } from 'lucide-react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 import * as SecureStore from 'expo-secure-store';
 import { adminAPI } from '../services/api';
 
@@ -221,11 +220,11 @@ export default function AdminScreen() {
 
   if (loading) {
     return (
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView className="flex-1 bg-slate-900">
         <StatusBar style="light" />
-        <View style={styles.loadingContainer}>
+        <View className="flex-1 justify-center items-center">
           <ActivityIndicator size="large" color="#06b6d4" />
-          <Text style={styles.loadingText}>Cargando estadísticas...</Text>
+          <Text className="text-slate-400 mt-4">Cargando estadísticas...</Text>
         </View>
       </SafeAreaView>
     );
@@ -233,15 +232,15 @@ export default function AdminScreen() {
 
   if (error && !stats) {
     return (
-      <SafeAreaView style={styles.container}>
+      <SafeAreaView className="flex-1 bg-slate-900">
         <StatusBar style="light" />
-        <View style={styles.errorContainer}>
-          <Text style={styles.errorText}>{error}</Text>
+        <View className="flex-1 justify-center items-center px-6">
+          <Text className="text-red-400 text-center mb-4">{error}</Text>
           <TouchableOpacity
             onPress={fetchAdminStats}
-            style={styles.retryButton}
+            className="bg-cyan-500 px-6 py-3 rounded-xl"
           >
-            <Text style={styles.retryButtonText}>Reintentar</Text>
+            <Text className="text-white font-bold">Reintentar</Text>
           </TouchableOpacity>
         </View>
       </SafeAreaView>
@@ -249,57 +248,57 @@ export default function AdminScreen() {
   }
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView className="flex-1 bg-slate-900">
       <StatusBar style="light" />
 
       {/* Header */}
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
-          <ArrowLeft size={24} color="#ffffff" />
+      <View className="px-6 py-4 flex-row items-center border-b border-slate-700">
+        <TouchableOpacity onPress={() => router.back()} className="mr-4">
+          <ArrowLeft size={24} color="#fff" />
         </TouchableOpacity>
-        <Text style={styles.headerTitle}>Panel de Administración</Text>
+        <Text className="text-white text-2xl font-bold">Panel de Administración</Text>
       </View>
 
-      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
+      <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
         {/* Gross Revenue Section */}
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
+        <View className="px-6 pt-6">
+          <View className="flex-row items-center mb-4">
             <Calculator size={20} color="#10b981" />
-            <Text style={styles.sectionTitle}>Gross Revenue</Text>
+            <Text className="text-white text-xl font-bold ml-2">Gross Revenue</Text>
           </View>
-          <View style={styles.card}>
+          <View className="bg-slate-800 rounded-xl p-5 border border-slate-700 mb-6">
             {(() => {
               const revenue = calculateGrossRevenue();
               return (
                 <>
                   <View>
-                    <View style={styles.revenueRow}>
-                      <Text style={styles.revenueLabel} numberOfLines={1}>Usuarios Pagos</Text>
-                      <Text style={styles.revenueValue}>{revenue.paidUsers}</Text>
+                    <View className="flex-row justify-between items-center mb-3">
+                      <Text className="text-slate-400 text-xs flex-1" numberOfLines={1}>Usuarios Pagos</Text>
+                      <Text className="text-white text-base font-bold ml-2">{revenue.paidUsers}</Text>
                     </View>
-                    <View style={styles.revenueRow}>
-                      <Text style={styles.revenueLabel} numberOfLines={1}>Total Suscripciones</Text>
-                      <Text style={styles.revenueValue} numberOfLines={1}>{formatCurrency(revenue.totalSubscriptions)}</Text>
+                    <View className="flex-row justify-between items-center mb-3">
+                      <Text className="text-slate-400 text-xs flex-1" numberOfLines={1}>Total Suscripciones</Text>
+                      <Text className="text-white text-base font-bold ml-2" numberOfLines={1}>{formatCurrency(revenue.totalSubscriptions)}</Text>
                     </View>
-                    <View style={styles.revenueRow}>
-                      <Text style={styles.revenueLabel} numberOfLines={1}>Costos Fijos</Text>
-                      <Text style={[styles.revenueValue, styles.negativeValue]} numberOfLines={1}>-{formatCurrency(revenue.fixedCosts)}</Text>
+                    <View className="flex-row justify-between items-center mb-3">
+                      <Text className="text-slate-400 text-xs flex-1" numberOfLines={1}>Costos Fijos</Text>
+                      <Text className="text-red-400 text-base font-bold ml-2" numberOfLines={1}>-{formatCurrency(revenue.fixedCosts)}</Text>
                     </View>
-                    <View style={styles.revenueRow}>
-                      <Text style={styles.revenueLabel} numberOfLines={2}>Subtotal</Text>
-                      <Text style={styles.revenueValue} numberOfLines={1}>{formatCurrency(revenue.afterFixedCosts)}</Text>
+                    <View className="flex-row justify-between items-center mb-3">
+                      <Text className="text-slate-400 text-xs flex-1" numberOfLines={2}>Subtotal</Text>
+                      <Text className="text-white text-base font-bold ml-2" numberOfLines={1}>{formatCurrency(revenue.afterFixedCosts)}</Text>
                     </View>
-                    <View style={styles.revenueRow}>
-                      <Text style={styles.revenueLabel} numberOfLines={1}>Taxes (20%)</Text>
-                      <Text style={[styles.revenueValue, styles.negativeValue]} numberOfLines={1}>-{formatCurrency(revenue.taxes)}</Text>
+                    <View className="flex-row justify-between items-center mb-3">
+                      <Text className="text-slate-400 text-xs flex-1" numberOfLines={1}>Taxes (20%)</Text>
+                      <Text className="text-red-400 text-base font-bold ml-2" numberOfLines={1}>-{formatCurrency(revenue.taxes)}</Text>
                     </View>
-                    <View style={styles.revenueDivider}>
-                      <View style={styles.grossRow}>
-                        <View style={styles.grossLabelContainer}>
+                    <View className="border-t border-slate-700 pt-3 mt-2">
+                      <View className="flex-row justify-between items-center">
+                        <View className="flex-row items-center flex-1">
                           <Receipt size={18} color="#10b981" />
-                          <Text style={styles.grossLabel} numberOfLines={1}>Gross After Costs</Text>
+                          <Text className="text-white text-base font-bold ml-2" numberOfLines={1}>Gross After Costs</Text>
                         </View>
-                        <Text style={styles.grossValue} numberOfLines={1}>{formatCurrency(revenue.grossAfterCosts)}</Text>
+                        <Text className="text-green-400 text-xl font-bold ml-2" numberOfLines={1}>{formatCurrency(revenue.grossAfterCosts)}</Text>
                       </View>
                     </View>
                   </View>
@@ -310,73 +309,73 @@ export default function AdminScreen() {
         </View>
 
         {/* Gross Revenue History */}
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
+        <View className="px-6 mb-6">
+          <View className="flex-row items-center mb-4">
             <History size={20} color="#10b981" />
-            <Text style={styles.sectionTitle}>Historial Gross Revenue</Text>
+            <Text className="text-white text-xl font-bold ml-2">Historial Gross Revenue</Text>
           </View>
-          <View style={styles.card}>
+          <View className="bg-slate-800 rounded-xl p-4 border border-slate-700">
             {revenueHistory.length > 0 ? (
               revenueHistory.map((entry, index) => (
                 <View
                   key={index}
-                  style={[styles.historyRow, index < revenueHistory.length - 1 && styles.historyRowBorder]}
+                  className="flex-row justify-between items-center py-3 border-b border-slate-700 last:border-b-0"
                 >
-                  <View style={styles.historyLeft}>
-                    <Text style={styles.historyDate}>{formatDate(entry.date)}</Text>
-                    <Text style={styles.historyUsers}>{entry.paidUsers} usuarios</Text>
+                  <View className="flex-1 mr-2">
+                    <Text className="text-white text-sm font-semibold">{formatDate(entry.date)}</Text>
+                    <Text className="text-slate-400 text-xs">{entry.paidUsers} usuarios</Text>
                   </View>
-                  <View style={styles.historyRight}>
-                    <Text style={styles.historyGross}>{formatCurrency(entry.grossAfterCosts)}</Text>
-                    <Text style={styles.historyTotal}>{formatCurrency(entry.totalSubscriptions)}</Text>
+                  <View className="items-end">
+                    <Text className="text-green-400 text-base font-bold">{formatCurrency(entry.grossAfterCosts)}</Text>
+                    <Text className="text-slate-500 text-xs">{formatCurrency(entry.totalSubscriptions)}</Text>
                   </View>
                 </View>
               ))
             ) : (
-              <Text style={styles.emptyText}>No hay historial disponible</Text>
+              <Text className="text-slate-400 text-sm text-center py-4">No hay historial disponible</Text>
             )}
           </View>
         </View>
 
         {/* Stats Cards */}
-        <View style={styles.section}>
-          <View style={styles.statsGrid}>
+        <View className="px-6">
+          <View className="flex-row flex-wrap justify-between mb-6">
             {/* Total Users */}
-            <View style={styles.statCard}>
-              <View style={styles.statHeader}>
+            <View className="w-[48%] bg-slate-800 rounded-xl p-4 mb-4 border border-slate-700">
+              <View className="flex-row items-center mb-2">
                 <Users size={24} color="#06b6d4" />
-                <Text style={styles.statLabel}>Total Usuarios</Text>
+                <Text className="text-slate-400 text-sm ml-2">Total Usuarios</Text>
               </View>
-              <Text style={styles.statValue}>{stats?.totalUsers || 0}</Text>
+              <Text className="text-white text-3xl font-bold">{stats?.totalUsers || 0}</Text>
             </View>
 
             {/* Active Users */}
-            <View style={styles.statCard}>
-              <View style={styles.statHeader}>
+            <View className="w-[48%] bg-slate-800 rounded-xl p-4 mb-4 border border-slate-700">
+              <View className="flex-row items-center mb-2">
                 <UserPlus size={24} color="#10b981" />
-                <Text style={styles.statLabel}>Usuarios Activos</Text>
+                <Text className="text-slate-400 text-sm ml-2">Usuarios Activos</Text>
               </View>
-              <Text style={styles.statValue}>{stats?.activeUsers || 0}</Text>
+              <Text className="text-white text-3xl font-bold">{stats?.activeUsers || 0}</Text>
             </View>
 
             {/* Monthly Revenue */}
-            <View style={styles.statCard}>
-              <View style={styles.statHeader}>
+            <View className="w-[48%] bg-slate-800 rounded-xl p-4 mb-4 border border-slate-700">
+              <View className="flex-row items-center mb-2">
                 <DollarSign size={24} color="#f59e0b" />
-                <Text style={styles.statLabel}>Revenue Mensual</Text>
+                <Text className="text-slate-400 text-sm ml-2">Revenue Mensual</Text>
               </View>
-              <Text style={styles.statValueSmall}>
+              <Text className="text-white text-2xl font-bold">
                 {formatCurrency(stats?.monthlyRevenue || 0)}
               </Text>
             </View>
 
             {/* Growth */}
-            <View style={styles.statCard}>
-              <View style={styles.statHeader}>
+            <View className="w-[48%] bg-slate-800 rounded-xl p-4 mb-4 border border-slate-700">
+              <View className="flex-row items-center mb-2">
                 <TrendingUp size={24} color="#a855f7" />
-                <Text style={styles.statLabel}>Crecimiento</Text>
+                <Text className="text-slate-400 text-sm ml-2">Crecimiento</Text>
               </View>
-              <Text style={styles.statValueSmall}>
+              <Text className="text-white text-2xl font-bold">
                 +{stats?.monthlyGrowth?.[stats.monthlyGrowth.length - 1]?.count || 0}%
               </Text>
             </View>
@@ -384,24 +383,24 @@ export default function AdminScreen() {
         </View>
 
         {/* Top Diagrams */}
-        <View style={styles.section}>
-          <View style={styles.sectionHeader}>
+        <View className="px-6 mb-6">
+          <View className="flex-row items-center mb-4">
             <BarChart3 size={20} color="#06b6d4" />
-            <Text style={styles.sectionTitle}>Diagramas Más Consultados</Text>
+            <Text className="text-white text-xl font-bold ml-2">Diagramas Más Consultados</Text>
           </View>
-          <View style={styles.card}>
+          <View className="bg-slate-800 rounded-xl p-4 border border-slate-700">
             {stats?.topDiagrams?.slice(0, 10).map((diagram, index) => (
               <View
                 key={index}
-                style={[styles.diagramRow, index < (stats?.topDiagrams?.length || 0) - 1 && styles.diagramRowBorder]}
+                className="flex-row justify-between items-center py-3 border-b border-slate-700 last:border-b-0"
               >
-                <View style={styles.diagramLeft}>
-                  <Text style={styles.diagramText} numberOfLines={1}>
+                <View className="flex-1">
+                  <Text className="text-white text-base font-semibold" numberOfLines={1}>
                     {index + 1}. {diagram.query}
                   </Text>
                 </View>
-                <View style={styles.diagramBadge}>
-                  <Text style={styles.diagramCount}>{diagram.count}</Text>
+                <View className="bg-cyan-500/20 px-3 py-1 rounded-full">
+                  <Text className="text-cyan-300 text-sm font-bold">{diagram.count}</Text>
                 </View>
               </View>
             ))}
@@ -409,44 +408,40 @@ export default function AdminScreen() {
         </View>
 
         {/* Recent Users */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitleStandalone}>Usuarios Recientes</Text>
-          <View style={styles.card}>
+        <View className="px-6 mb-6">
+          <Text className="text-white text-xl font-bold mb-4">Usuarios Recientes</Text>
+          <View className="bg-slate-800 rounded-xl p-4 border border-slate-700">
             {stats?.recentUsers?.slice(0, 5).map((user, index) => (
               <View
                 key={index}
-                style={[styles.userRow, index < (stats?.recentUsers?.length || 0) - 1 && styles.userRowBorder]}
+                className="flex-row justify-between items-center py-3 border-b border-slate-700 last:border-b-0"
               >
-                <View style={styles.userLeft}>
-                  <Text style={styles.userName}>{user.username}</Text>
-                  <Text style={styles.userEmail}>{user.email}</Text>
+                <View className="flex-1">
+                  <Text className="text-white text-base font-semibold">{user.username}</Text>
+                  <Text className="text-slate-400 text-sm">{user.email}</Text>
                 </View>
-                <Text style={styles.userDate}>{formatDate(user.createdAt)}</Text>
+                <Text className="text-slate-500 text-xs">{formatDate(user.createdAt)}</Text>
               </View>
             ))}
           </View>
         </View>
 
         {/* Monthly Growth Chart (Simple) */}
-        <View style={styles.section}>
-          <Text style={styles.sectionTitleStandalone}>Crecimiento Mensual</Text>
-          <View style={styles.card}>
-            <View style={styles.chartContainer}>
+        <View className="px-6 mb-8">
+          <Text className="text-white text-xl font-bold mb-4">Crecimiento Mensual</Text>
+          <View className="bg-slate-800 rounded-xl p-4 border border-slate-700">
+            <View className="flex-row items-end justify-between h-32">
               {stats?.monthlyGrowth?.map((month, index) => {
                 const maxCount = Math.max(...(stats.monthlyGrowth?.map(m => m.count) || [1]));
                 const height = (month.count / maxCount) * 100;
                 return (
-                  <View key={index} style={styles.chartBar}>
-                    <View style={styles.chartBarContainer}>
-                      <LinearGradient
-                        colors={['#06b6d4', '#22d3ee']}
-                        start={{ x: 0, y: 1 }}
-                        end={{ x: 0, y: 0 }}
-                        style={[styles.chartBarGradient, { height: `${height}%`, minHeight: 8 }]}
-                      />
-                    </View>
-                    <Text style={styles.chartMonth}>{month.month}</Text>
-                    <Text style={styles.chartValue}>{month.count}</Text>
+                  <View key={index} className="flex-1 items-center mx-1">
+                    <View
+                      className="w-full bg-gradient-to-t from-cyan-500 to-cyan-400 rounded-t"
+                      style={{ height: `${height}%`, minHeight: 8 }}
+                    />
+                    <Text className="text-slate-400 text-xs mt-2">{month.month}</Text>
+                    <Text className="text-white text-xs font-bold mt-1">{month.count}</Text>
                   </View>
                 );
               })}
@@ -455,16 +450,16 @@ export default function AdminScreen() {
         </View>
 
         {/* Refresh Button */}
-        <View style={styles.refreshSection}>
+        <View className="px-6 pb-8">
           <TouchableOpacity
             onPress={() => {
               fetchAdminStats();
               fetchSubscriptions();
             }}
-            style={styles.refreshButton}
+            className="bg-cyan-500 py-4 rounded-xl"
             disabled={loading}
           >
-            <Text style={styles.refreshButtonText}>
+            <Text className="text-white text-center font-bold text-lg">
               {loading ? 'Actualizando...' : 'Actualizar Estadísticas'}
             </Text>
           </TouchableOpacity>
@@ -474,312 +469,3 @@ export default function AdminScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#0f172a', // slate-900
-  },
-  scrollView: {
-    flex: 1,
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  loadingText: {
-    color: '#94a3b8',
-    marginTop: 16,
-  },
-  errorContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 24,
-  },
-  errorText: {
-    color: '#f87171',
-    textAlign: 'center',
-    marginBottom: 16,
-  },
-  retryButton: {
-    backgroundColor: '#06b6d4', // cyan-500
-    paddingHorizontal: 24,
-    paddingVertical: 12,
-    borderRadius: 12,
-  },
-  retryButtonText: {
-    color: '#ffffff',
-    fontWeight: 'bold',
-  },
-  header: {
-    paddingHorizontal: 24,
-    paddingVertical: 16,
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderBottomWidth: 1,
-    borderBottomColor: '#334155', // slate-700
-  },
-  backButton: {
-    marginRight: 16,
-  },
-  headerTitle: {
-    color: '#ffffff',
-    fontSize: 24,
-    fontWeight: 'bold',
-  },
-  section: {
-    paddingHorizontal: 24,
-    paddingTop: 24,
-    marginBottom: 24,
-  },
-  sectionHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  sectionTitle: {
-    color: '#ffffff',
-    fontSize: 20,
-    fontWeight: 'bold',
-    marginLeft: 8,
-  },
-  sectionTitleStandalone: {
-    color: '#ffffff',
-    fontSize: 20,
-    fontWeight: 'bold',
-    marginBottom: 16,
-  },
-  card: {
-    backgroundColor: '#1e293b', // slate-800
-    borderRadius: 12,
-    padding: 20,
-    borderWidth: 1,
-    borderColor: '#334155', // slate-700
-  },
-  revenueRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  revenueLabel: {
-    color: '#94a3b8',
-    fontSize: 12,
-    flex: 1,
-  },
-  revenueValue: {
-    color: '#ffffff',
-    fontSize: 16,
-    fontWeight: 'bold',
-    marginLeft: 8,
-  },
-  negativeValue: {
-    color: '#f87171', // red-400
-  },
-  revenueDivider: {
-    borderTopWidth: 1,
-    borderTopColor: '#334155', // slate-700
-    paddingTop: 12,
-    marginTop: 8,
-  },
-  grossRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  grossLabelContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flex: 1,
-  },
-  grossLabel: {
-    color: '#ffffff',
-    fontSize: 16,
-    fontWeight: 'bold',
-    marginLeft: 8,
-  },
-  grossValue: {
-    color: '#4ade80', // green-400
-    fontSize: 20,
-    fontWeight: 'bold',
-    marginLeft: 8,
-  },
-  historyRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: 12,
-  },
-  historyRowBorder: {
-    borderBottomWidth: 1,
-    borderBottomColor: '#334155', // slate-700
-  },
-  historyLeft: {
-    flex: 1,
-    marginRight: 8,
-  },
-  historyDate: {
-    color: '#ffffff',
-    fontSize: 14,
-    fontWeight: '600',
-  },
-  historyUsers: {
-    color: '#94a3b8',
-    fontSize: 12,
-  },
-  historyRight: {
-    alignItems: 'flex-end',
-  },
-  historyGross: {
-    color: '#4ade80', // green-400
-    fontSize: 16,
-    fontWeight: 'bold',
-  },
-  historyTotal: {
-    color: '#64748b',
-    fontSize: 12,
-  },
-  emptyText: {
-    color: '#94a3b8',
-    fontSize: 14,
-    textAlign: 'center',
-    paddingVertical: 16,
-  },
-  statsGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'space-between',
-  },
-  statCard: {
-    width: '48%',
-    backgroundColor: '#1e293b', // slate-800
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 16,
-    borderWidth: 1,
-    borderColor: '#334155', // slate-700
-  },
-  statHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  statLabel: {
-    color: '#94a3b8',
-    fontSize: 14,
-    marginLeft: 8,
-  },
-  statValue: {
-    color: '#ffffff',
-    fontSize: 32,
-    fontWeight: 'bold',
-  },
-  statValueSmall: {
-    color: '#ffffff',
-    fontSize: 20,
-    fontWeight: 'bold',
-  },
-  diagramRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: 12,
-  },
-  diagramRowBorder: {
-    borderBottomWidth: 1,
-    borderBottomColor: '#334155', // slate-700
-  },
-  diagramLeft: {
-    flex: 1,
-  },
-  diagramText: {
-    color: '#ffffff',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  diagramBadge: {
-    backgroundColor: 'rgba(6, 182, 212, 0.2)',
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-    borderRadius: 9999,
-  },
-  diagramCount: {
-    color: '#67e8f9', // cyan-300
-    fontSize: 14,
-    fontWeight: 'bold',
-  },
-  userRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingVertical: 12,
-  },
-  userRowBorder: {
-    borderBottomWidth: 1,
-    borderBottomColor: '#334155', // slate-700
-  },
-  userLeft: {
-    flex: 1,
-  },
-  userName: {
-    color: '#ffffff',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  userEmail: {
-    color: '#94a3b8',
-    fontSize: 14,
-  },
-  userDate: {
-    color: '#64748b',
-    fontSize: 12,
-  },
-  chartContainer: {
-    flexDirection: 'row',
-    alignItems: 'flex-end',
-    justifyContent: 'space-between',
-    height: 128,
-  },
-  chartBar: {
-    flex: 1,
-    alignItems: 'center',
-    marginHorizontal: 4,
-  },
-  chartBarContainer: {
-    width: '100%',
-    height: '100%',
-    justifyContent: 'flex-end',
-  },
-  chartBarGradient: {
-    width: '100%',
-    borderTopLeftRadius: 4,
-    borderTopRightRadius: 4,
-  },
-  chartMonth: {
-    color: '#94a3b8',
-    fontSize: 12,
-    marginTop: 8,
-  },
-  chartValue: {
-    color: '#ffffff',
-    fontSize: 12,
-    fontWeight: 'bold',
-    marginTop: 4,
-  },
-  refreshSection: {
-    paddingHorizontal: 24,
-    paddingBottom: 32,
-  },
-  refreshButton: {
-    backgroundColor: '#06b6d4', // cyan-500
-    paddingVertical: 16,
-    borderRadius: 12,
-  },
-  refreshButtonText: {
-    color: '#ffffff',
-    textAlign: 'center',
-    fontWeight: 'bold',
-    fontSize: 18,
-  },
-});
