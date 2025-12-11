@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { View, Text, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { View, Text, TouchableOpacity, ActivityIndicator, StyleSheet } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { WebView } from 'react-native-webview';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
@@ -156,10 +156,10 @@ export default function PDFViewerScreen() {
 
   if (error) {
     return (
-      <View className="flex-1 bg-slate-900 items-center justify-center">
+      <View style={styles.errorContainer}>
         <FileText size={64} color="#ef4444" />
-        <Text className="text-white text-xl font-bold mt-4">Error al cargar el PDF</Text>
-        <Text className="text-slate-400 mt-2 text-center px-8">
+        <Text style={styles.errorTitle}>Error al cargar el PDF</Text>
+        <Text style={styles.errorText}>
           No pudimos cargar el diagrama. Verifica tu conexión.
         </Text>
         <TouchableOpacity
@@ -167,28 +167,22 @@ export default function PDFViewerScreen() {
             console.log('[PDF Viewer] 🔴 Volviendo desde pantalla de error');
             router.navigate('/search');
           }}
-          className="mt-6 bg-cyan-500 px-6 py-3 rounded-lg"
+          style={styles.errorButton}
         >
-          <Text className="text-white font-bold">Volver</Text>
+          <Text style={styles.errorButtonText}>Volver</Text>
         </TouchableOpacity>
       </View>
     );
   }
 
   return (
-    <View className="flex-1 bg-slate-900">
+    <View style={styles.container}>
       {/* Header */}
-      <View className="bg-slate-800 pt-12 pb-4 px-4 flex-row items-center justify-between">
-        <Text className="text-white text-xl font-bold">Diagrama PDF</Text>
+      <View style={styles.header}>
+        <Text style={styles.headerTitle}>Diagrama PDF</Text>
         
         {/* Botón X - Reducido */}
-        <View style={{ 
-          justifyContent: 'center', 
-          alignItems: 'center',
-          position: 'absolute',
-          right: 12,
-          top: 48
-        }}>
+        <View style={styles.closeButtonContainer}>
           <TouchableOpacity 
             onPress={() => {
               console.log('[PDF Viewer] 🔴 TOQUE DETECTADO EN X');
@@ -196,23 +190,14 @@ export default function PDFViewerScreen() {
               router.navigate('/search');
             }}
             activeOpacity={0.6}
-            style={{ 
-              width: 36,
-              height: 36,
-              backgroundColor: 'rgba(239, 68, 68, 0.9)',
-              borderRadius: 18,
-              justifyContent: 'center',
-              alignItems: 'center',
-              borderWidth: 1.5,
-              borderColor: '#ffffff'
-            }}
+            style={styles.closeButton}
           >
             <X size={18} color="#ffffff" strokeWidth={2.5} />
           </TouchableOpacity>
         </View>
       </View>
 
-      <GestureHandlerRootView style={{ flex: 1 }}>
+      <GestureHandlerRootView style={styles.flex1}>
         <WebView
           ref={webViewRef}
           source={{ uri: pdfUrl }}
@@ -255,11 +240,11 @@ export default function PDFViewerScreen() {
       </GestureHandlerRootView>
 
       {loading && (
-        <View className="absolute inset-0 items-center justify-center bg-slate-900">
-          <FileText size={64} color="#06b6d4" className="mb-6" />
+        <View style={styles.loadingContainer}>
+          <FileText size={64} color="#06b6d4" style={styles.loadingIcon} />
           <ActivityIndicator size="large" color="#06b6d4" />
-          <Text className="text-white text-xl font-bold mt-4">Preparando tu diagrama</Text>
-          <Text className="text-slate-400 mt-2 text-center px-8">
+          <Text style={styles.loadingTitle}>Preparando tu diagrama</Text>
+          <Text style={styles.loadingText}>
             Estamos cargando el manual técnico del vehículo
           </Text>
         </View>
@@ -267,3 +252,98 @@ export default function PDFViewerScreen() {
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#0f172a',
+  },
+  flex1: {
+    flex: 1,
+  },
+  header: {
+    backgroundColor: '#1e293b',
+    paddingTop: 48,
+    paddingBottom: 16,
+    paddingHorizontal: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  headerTitle: {
+    color: '#ffffff',
+    fontSize: 20,
+    fontWeight: 'bold',
+  },
+  closeButtonContainer: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    position: 'absolute',
+    right: 12,
+    top: 48,
+  },
+  closeButton: {
+    width: 36,
+    height: 36,
+    backgroundColor: 'rgba(239, 68, 68, 0.9)',
+    borderRadius: 18,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderWidth: 1.5,
+    borderColor: '#ffffff',
+  },
+  errorContainer: {
+    flex: 1,
+    backgroundColor: '#0f172a',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  errorTitle: {
+    color: '#ffffff',
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginTop: 16,
+  },
+  errorText: {
+    color: '#94a3b8',
+    marginTop: 8,
+    textAlign: 'center',
+    paddingHorizontal: 32,
+  },
+  errorButton: {
+    marginTop: 24,
+    backgroundColor: '#06b6d4',
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 8,
+  },
+  errorButtonText: {
+    color: '#ffffff',
+    fontWeight: 'bold',
+  },
+  loadingContainer: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#0f172a',
+  },
+  loadingIcon: {
+    marginBottom: 24,
+  },
+  loadingTitle: {
+    color: '#ffffff',
+    fontSize: 20,
+    fontWeight: 'bold',
+    marginTop: 16,
+  },
+  loadingText: {
+    color: '#94a3b8',
+    marginTop: 8,
+    textAlign: 'center',
+    paddingHorizontal: 32,
+  },
+});
