@@ -1,9 +1,12 @@
 import { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, Alert, Linking, StyleSheet } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, Alert, Linking, StyleSheet, Dimensions } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Zap, Eye, EyeOff } from 'lucide-react-native';
 import { authAPI } from '../services/api';
 import * as SecureStore from 'expo-secure-store';
+
+const SCREEN_WIDTH = Dimensions.get('window').width;
+const MAX_CONTENT_WIDTH = 384;
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -35,9 +38,13 @@ export default function LoginScreen() {
     }
   };
 
+  const contentStyle = {
+    width: SCREEN_WIDTH > MAX_CONTENT_WIDTH ? MAX_CONTENT_WIDTH : SCREEN_WIDTH - 48, // 48 = padding horizontal * 2
+  };
+
   return (
     <View style={styles.container}>
-      <View style={styles.content}>
+      <View style={[styles.content, contentStyle]}>
         <View style={styles.header}>
           <View style={styles.iconContainer}>
             <Zap size={80} color="#06b6d4" fill="#06b6d4" />
@@ -134,8 +141,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 24,
   },
   content: {
-    width: '100%',
-    maxWidth: 384,
+    // Width is set dynamically in component
   },
   header: {
     alignItems: 'center',

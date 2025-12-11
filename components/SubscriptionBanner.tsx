@@ -193,14 +193,14 @@ const styles = StyleSheet.create({
   },
   planesButton: {
     marginLeft: 8,
+    backgroundColor: '#06b6d4', // cyan-500
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 8,
   },
   planesButtonText: {
     color: '#ffffff', // blanco
     fontSize: 14,
     fontWeight: 'bold',
-    backgroundColor: '#06b6d4', // cyan-500
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 8,
   },
 });
