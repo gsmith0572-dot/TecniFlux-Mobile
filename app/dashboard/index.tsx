@@ -213,6 +213,7 @@ const styles = StyleSheet.create({
   planText: {
     fontSize: 12,
     fontWeight: 'bold',
+    color: '#cbd5e1', // slate-300 default
   },
   searchCard: {
     marginHorizontal: 24,
