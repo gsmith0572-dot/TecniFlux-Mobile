@@ -21,6 +21,8 @@ export default function PricingCard({ plan, onSelect, loading = false, isCurrent
         return <Zap size={48} color="#06b6d4" />;
       case 'pro':
         return <Crown size={48} color="rgb(168, 85, 247)" />;
+      default:
+        return <Sparkles size={48} color="#94a3b8" />;
     }
   };
 
@@ -60,6 +62,16 @@ export default function PricingCard({ plan, onSelect, loading = false, isCurrent
           overlayGradient: null,
           iconColor: 'rgb(168, 85, 247)',
           buttonColor: '#a855f7',
+          checkColor: '#22c55e',
+        };
+      default:
+        // Fallback a configuración 'free' para valores inesperados
+        return {
+          borderColor: '#475569',
+          headerGradient: ['rgba(30, 41, 59, 0.5)', 'rgba(15, 23, 42, 0.5)'],
+          overlayGradient: ['rgba(30, 41, 59, 0.3)', 'rgba(15, 23, 42, 0.3)'],
+          iconColor: '#94a3b8',
+          buttonColor: '#475569',
           checkColor: '#22c55e',
         };
     }
