@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { View, Text, ScrollView, Alert, ActivityIndicator } from 'react-native';
+import { View, Text, ScrollView, Alert, ActivityIndicator, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { useRouter } from 'expo-router';
@@ -135,20 +135,20 @@ export default function PricingScreen() {
 
   if (checkoutUrl) {
     return (
-      <SafeAreaView className="flex-1 bg-slate-900">
+      <SafeAreaView style={styles.container}>
         <StatusBar style="light" />
-        <View className="flex-1">
-          <View className="bg-slate-800 px-6 py-4 flex-row items-center border-b border-slate-700">
+        <View style={styles.flex1}>
+          <View style={styles.checkoutHeader}>
             <TouchableOpacity
               onPress={() => {
                 setCheckoutUrl(null);
                 setLoading(false);
               }}
-              className="mr-4"
+              style={styles.backButton}
             >
-              <ArrowLeft size={24} color="#fff" />
+              <ArrowLeft size={24} color="#ffffff" />
             </TouchableOpacity>
-            <Text className="text-white text-lg font-bold">Completa tu pago</Text>
+            <Text style={styles.checkoutHeaderText}>Completa tu pago</Text>
           </View>
           <WebView
             source={{ uri: checkoutUrl }}
@@ -166,27 +166,27 @@ export default function PricingScreen() {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-slate-900">
+    <SafeAreaView style={styles.container}>
       <StatusBar style="light" />
       
-      <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
+      <ScrollView style={styles.flex1} showsVerticalScrollIndicator={false}>
         {/* Header */}
-        <View className="px-6 pt-4 pb-6 flex-row items-center">
-          <TouchableOpacity onPress={() => router.back()} className="mr-4">
-            <ArrowLeft size={24} color="#fff" />
+        <View style={styles.header}>
+          <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+            <ArrowLeft size={24} color="#ffffff" />
           </TouchableOpacity>
-          <Text className="text-white text-2xl font-bold">Planes de Suscripción</Text>
+          <Text style={styles.title}>Planes de Suscripción</Text>
         </View>
 
         {/* Description */}
-        <View className="px-6 mb-6">
-          <Text className="text-slate-400 text-center text-base">
+        <View style={styles.descriptionContainer}>
+          <Text style={styles.description}>
             Elige el plan que mejor se adapte a tus necesidades
           </Text>
         </View>
 
         {/* Pricing Cards */}
-        <View className="px-6 pb-8">
+        <View style={styles.cardsContainer}>
           {PLANS.map((plan) => (
             <PricingCard
               key={plan.id}
@@ -199,9 +199,9 @@ export default function PricingScreen() {
         </View>
 
         {loading && (
-          <View className="items-center pb-8">
+          <View style={styles.loadingContainer}>
             <ActivityIndicator size="large" color="#06b6d4" />
-            <Text className="text-slate-400 mt-4">Procesando...</Text>
+            <Text style={styles.loadingText}>Procesando...</Text>
           </View>
         )}
       </ScrollView>
@@ -209,3 +209,62 @@ export default function PricingScreen() {
   );
 }
 
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#0f172a',
+  },
+  flex1: {
+    flex: 1,
+  },
+  checkoutHeader: {
+    backgroundColor: '#1e293b',
+    paddingHorizontal: 24,
+    paddingVertical: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderBottomWidth: 1,
+    borderBottomColor: '#334155',
+  },
+  backButton: {
+    marginRight: 16,
+  },
+  checkoutHeaderText: {
+    color: '#ffffff',
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  header: {
+    paddingHorizontal: 24,
+    paddingTop: 16,
+    paddingBottom: 24,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  title: {
+    color: '#ffffff',
+    fontSize: 24,
+    fontWeight: 'bold',
+  },
+  descriptionContainer: {
+    paddingHorizontal: 24,
+    marginBottom: 24,
+  },
+  description: {
+    color: '#94a3b8',
+    textAlign: 'center',
+    fontSize: 16,
+  },
+  cardsContainer: {
+    paddingHorizontal: 24,
+    paddingBottom: 32,
+  },
+  loadingContainer: {
+    alignItems: 'center',
+    paddingBottom: 32,
+  },
+  loadingText: {
+    color: '#94a3b8',
+    marginTop: 16,
+  },
+});
