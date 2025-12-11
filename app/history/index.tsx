@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { View, Text, ScrollView, TouchableOpacity, FlatList, ActivityIndicator } from 'react-native';
+import { View, Text, ScrollView, TouchableOpacity, FlatList, ActivityIndicator, StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { useRouter } from 'expo-router';
@@ -64,29 +64,29 @@ export default function HistoryScreen() {
     <TouchableOpacity
       onPress={() => handleOpenDiagram(item)}
       activeOpacity={0.7}
-      className="bg-slate-800 rounded-xl p-4 mb-3 border border-slate-700"
+      style={styles.historyCard}
     >
-      <View className="flex-row items-start">
-        <View className="bg-cyan-500/20 p-3 rounded-lg border border-cyan-500/30 mr-4">
+      <View style={styles.historyRow}>
+        <View style={styles.historyIconContainer}>
           <FileText size={24} color="#06b6d4" />
         </View>
-        <View className="flex-1">
-          <Text className="text-white text-lg font-bold">
+        <View style={styles.historyContent}>
+          <Text style={styles.historyTitle}>
             {item.make} {item.model}
           </Text>
           {item.year && (
-            <Text className="text-cyan-400 text-sm mt-1">
+            <Text style={styles.historyYear}>
               Año: {item.year}
             </Text>
           )}
           {item.system && (
-            <Text className="text-slate-400 text-sm mt-1">
+            <Text style={styles.historySystem}>
               Sistema: {item.system}
             </Text>
           )}
-          <View className="flex-row items-center mt-2">
+          <View style={styles.historyDateRow}>
             <Clock size={14} color="#64748b" />
-            <Text className="text-slate-500 text-xs ml-1">
+            <Text style={styles.historyDate}>
               {formatDate(item.date)}
             </Text>
           </View>
@@ -97,7 +97,7 @@ export default function HistoryScreen() {
 
   if (loading) {
     return (
-      <SafeAreaView className="flex-1 bg-slate-900 justify-center items-center">
+      <SafeAreaView style={[styles.container, styles.centerContent]}>
         <StatusBar style="light" />
         <ActivityIndicator size="large" color="#06b6d4" />
       </SafeAreaView>
@@ -105,22 +105,22 @@ export default function HistoryScreen() {
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-slate-900">
+    <SafeAreaView style={styles.container}>
       <StatusBar style="light" />
       
-      <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
+      <ScrollView style={styles.flex1} showsVerticalScrollIndicator={false}>
         {/* Header */}
-        <View className="px-6 pt-4 pb-6 flex-row items-center justify-between">
-          <View className="flex-row items-center">
-            <TouchableOpacity onPress={() => router.back()} className="mr-4">
-              <ArrowLeft size={24} color="#fff" />
+        <View style={styles.header}>
+          <View style={styles.headerLeft}>
+            <TouchableOpacity onPress={() => router.back()} style={styles.backButton}>
+              <ArrowLeft size={24} color="#ffffff" />
             </TouchableOpacity>
-            <Text className="text-white text-2xl font-bold">Historial</Text>
+            <Text style={styles.headerTitle}>Historial</Text>
           </View>
           {history.length > 0 && (
             <TouchableOpacity
               onPress={handleClearHistory}
-              className="bg-red-500/20 p-2 rounded-lg border border-red-500/30"
+              style={styles.clearButton}
               activeOpacity={0.8}
             >
               <Trash2 size={20} color="#ef4444" />
@@ -130,20 +130,20 @@ export default function HistoryScreen() {
 
         {/* Content */}
         {history.length === 0 ? (
-          <View className="flex-1 justify-center items-center px-6 py-20">
-            <View className="bg-slate-800/50 p-8 rounded-2xl items-center">
+          <View style={styles.emptyContainer}>
+            <View style={styles.emptyCard}>
               <Clock size={72} color="#475569" />
-              <Text className="text-slate-400 text-lg mt-4 text-center">
+              <Text style={styles.emptyText}>
                 No hay historial aún
               </Text>
-              <Text className="text-slate-500 text-sm mt-2 text-center">
+              <Text style={styles.emptySubtext}>
                 Los diagramas que consultes aparecerán aquí
               </Text>
             </View>
           </View>
         ) : (
-          <View className="px-6 pb-8">
-            <Text className="text-slate-400 text-sm mb-4">
+          <View style={styles.contentContainer}>
+            <Text style={styles.contentSubtitle}>
               Últimos {history.length} diagramas consultados
             </Text>
             <FlatList
@@ -159,3 +159,125 @@ export default function HistoryScreen() {
   );
 }
 
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#0f172a',
+  },
+  flex1: {
+    flex: 1,
+  },
+  centerContent: {
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  header: {
+    paddingHorizontal: 24,
+    paddingTop: 16,
+    paddingBottom: 24,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  headerLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  backButton: {
+    marginRight: 16,
+  },
+  headerTitle: {
+    color: '#ffffff',
+    fontSize: 24,
+    fontWeight: 'bold',
+  },
+  clearButton: {
+    backgroundColor: 'rgba(239, 68, 68, 0.2)',
+    padding: 8,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(239, 68, 68, 0.3)',
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 24,
+    paddingVertical: 80,
+  },
+  emptyCard: {
+    backgroundColor: 'rgba(30, 41, 59, 0.5)',
+    padding: 32,
+    borderRadius: 16,
+    alignItems: 'center',
+  },
+  emptyText: {
+    color: '#94a3b8',
+    fontSize: 18,
+    marginTop: 16,
+    textAlign: 'center',
+  },
+  emptySubtext: {
+    color: '#64748b',
+    fontSize: 14,
+    marginTop: 8,
+    textAlign: 'center',
+  },
+  contentContainer: {
+    paddingHorizontal: 24,
+    paddingBottom: 32,
+  },
+  contentSubtitle: {
+    color: '#94a3b8',
+    fontSize: 14,
+    marginBottom: 16,
+  },
+  historyCard: {
+    backgroundColor: '#1e293b',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: '#334155',
+  },
+  historyRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+  },
+  historyIconContainer: {
+    backgroundColor: 'rgba(6, 182, 212, 0.2)',
+    padding: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(6, 182, 212, 0.3)',
+    marginRight: 16,
+  },
+  historyContent: {
+    flex: 1,
+  },
+  historyTitle: {
+    color: '#ffffff',
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  historyYear: {
+    color: '#06b6d4',
+    fontSize: 14,
+    marginTop: 4,
+  },
+  historySystem: {
+    color: '#94a3b8',
+    fontSize: 14,
+    marginTop: 4,
+  },
+  historyDateRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 8,
+  },
+  historyDate: {
+    color: '#64748b',
+    fontSize: 12,
+    marginLeft: 4,
+  },
+});
