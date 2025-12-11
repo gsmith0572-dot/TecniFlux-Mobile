@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, StyleSheet } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -41,24 +41,46 @@ export default function DashboardScreen() {
     router.push('/scanner');
   };
 
+  const getPlanBadgeStyle = () => {
+    if (subscription?.plan === 'pro') {
+      return { backgroundColor: 'rgba(168, 85, 247, 0.2)', borderColor: 'rgba(168, 85, 247, 0.3)' };
+    } else if (subscription?.plan === 'premium') {
+      return { backgroundColor: 'rgba(6, 182, 212, 0.2)', borderColor: 'rgba(6, 182, 212, 0.3)' };
+    } else if (subscription?.plan === 'plus') {
+      return { backgroundColor: 'rgba(245, 158, 11, 0.2)', borderColor: 'rgba(245, 158, 11, 0.3)' };
+    }
+    return { backgroundColor: 'rgba(100, 116, 139, 0.2)', borderColor: 'rgba(100, 116, 139, 0.3)' };
+  };
+
+  const getPlanTextStyle = () => {
+    if (subscription?.plan === 'pro') {
+      return { color: '#c084fc' }; // purple-300
+    } else if (subscription?.plan === 'premium') {
+      return { color: '#67e8f9' }; // cyan-300
+    } else if (subscription?.plan === 'plus') {
+      return { color: '#fcd34d' }; // amber-300
+    }
+    return { color: '#cbd5e1' }; // slate-300
+  };
+
   return (
-    <SafeAreaView className="flex-1 bg-slate-900">
+    <SafeAreaView style={styles.container}>
       <StatusBar style="light" />
       
-      <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
+      <ScrollView style={styles.scrollView} showsVerticalScrollIndicator={false}>
         {/* Header */}
-        <View className="px-6 py-4">
+        <View style={styles.header}>
           {/* Línea 1: Saludo */}
-          <View className="mb-3">
-            <Text className="text-white text-xl font-bold">Hola, George</Text>
+          <View style={styles.greetingContainer}>
+            <Text style={styles.greeting}>Hola, George</Text>
           </View>
           
           {/* Línea 2: Badges e iconos */}
-          <View className="flex-row items-center justify-between">
+          <View style={styles.badgesRow}>
             {isAdmin && (
               <TouchableOpacity
                 onPress={() => router.push('/admin')}
-                className="bg-purple-500/20 p-2 rounded-lg border border-purple-500/30"
+                style={styles.adminButton}
                 activeOpacity={0.8}
               >
                 <Shield size={20} color="#a855f7" />
@@ -66,40 +88,20 @@ export default function DashboardScreen() {
             )}
             <TouchableOpacity
               onPress={() => router.push('/help')}
-              className="bg-slate-800 p-2 rounded-lg border border-slate-700"
+              style={styles.iconButton}
               activeOpacity={0.8}
             >
               <HelpCircle size={20} color="#06b6d4" />
             </TouchableOpacity>
             <TouchableOpacity
               onPress={() => router.push('/history')}
-              className="bg-slate-800 p-2 rounded-lg border border-slate-700"
+              style={styles.iconButton}
               activeOpacity={0.8}
             >
               <History size={20} color="#06b6d4" />
             </TouchableOpacity>
-            <View 
-              className={`px-3 py-1 rounded-full border ${
-                subscription?.plan === 'pro' 
-                  ? 'bg-purple-500/20 border-purple-500/30' 
-                  : subscription?.plan === 'premium'
-                  ? 'bg-cyan-500/20 border-cyan-500/30'
-                  : subscription?.plan === 'plus'
-                  ? 'bg-amber-500/20 border-amber-500/30'
-                  : 'bg-slate-500/20 border-slate-500/30'
-              }`}
-            >
-              <Text 
-                className={`text-xs font-bold ${
-                  subscription?.plan === 'pro' 
-                    ? 'text-purple-300' 
-                    : subscription?.plan === 'premium'
-                    ? 'text-cyan-300'
-                    : subscription?.plan === 'plus'
-                    ? 'text-amber-300'
-                    : 'text-slate-300'
-                }`}
-              >
+            <View style={[styles.planBadge, getPlanBadgeStyle()]}>
+              <Text style={[styles.planText, getPlanTextStyle()]}>
                 {subscription?.plan?.toUpperCase() || 'FREE'}
               </Text>
             </View>
@@ -110,39 +112,39 @@ export default function DashboardScreen() {
         <SubscriptionBanner />
 
         {/* Tarjeta de Búsqueda (Hero) */}
-        <View className="mx-6 mt-4 p-6 rounded-2xl bg-slate-800 border border-slate-700">
-          <Text className="text-slate-400 mb-4 text-base">¿Qué reparamos hoy?</Text>
+        <View style={styles.searchCard}>
+          <Text style={styles.searchCardTitle}>¿Qué reparamos hoy?</Text>
           <TouchableOpacity
             onPress={handleSearch}
-            className="bg-slate-900/50 h-12 rounded-xl flex-row items-center px-4 border border-slate-700"
+            style={styles.searchInput}
             activeOpacity={0.7}
           >
             <Search size={20} color="#94a3b8" />
-            <Text className="text-slate-500 ml-3 text-base">Buscar por VIN o Marca...</Text>
+            <Text style={styles.searchInputText}>Buscar por VIN o Marca...</Text>
           </TouchableOpacity>
         </View>
 
         {/* Búsqueda Rápida - Espacio Publicitario */}
-        <View className="mx-6 mt-8 mb-6">
-          <Text className="text-white font-bold text-lg mb-2 text-center">Búsqueda Rápida</Text>
-          <Text className="text-slate-400 text-sm mb-6 text-center">
+        <View style={styles.quickSearchSection}>
+          <Text style={styles.quickSearchTitle}>Búsqueda Rápida</Text>
+          <Text style={styles.quickSearchSubtitle}>
             Accede a más de 30,000 diagramas técnicos automotrices
           </Text>
           
           {/* Espacio publicitario - Ocupa todo el espacio */}
-          <View className="bg-slate-800/30 rounded-xl p-12 border border-slate-700/30 items-center justify-center mb-6" style={{ minHeight: 200 }}>
-            <Text className="text-slate-500 text-sm text-center" style={{ textAlign: 'center' }}>Espacio Publicitario Disponible</Text>
+          <View style={styles.adSpace}>
+            <Text style={styles.adSpaceText}>Espacio Publicitario Disponible</Text>
           </View>
         </View>
 
         {/* Link a Acerca de */}
-        <View className="px-6 mb-8">
+        <View style={styles.aboutSection}>
           <TouchableOpacity
             onPress={() => router.push('/about')}
-            className="bg-slate-800/50 rounded-xl p-4 border border-slate-700/50"
+            style={styles.aboutButton}
             activeOpacity={0.8}
           >
-            <Text className="text-slate-400 text-center text-sm">
+            <Text style={styles.aboutButtonText}>
               Acerca de TecniFlux
             </Text>
           </TouchableOpacity>
@@ -150,17 +152,10 @@ export default function DashboardScreen() {
       </ScrollView>
 
       {/* Botón Flotante de Escáner (FAB) */}
-      <View className="absolute bottom-6 right-6">
+      <View style={styles.fabContainer}>
         <TouchableOpacity
           onPress={handleScanner}
-          className="w-16 h-16 bg-cyan-500 rounded-full items-center justify-center shadow-lg"
-          style={{
-            shadowColor: '#06b6d4',
-            shadowOffset: { width: 0, height: 4 },
-            shadowOpacity: 0.4,
-            shadowRadius: 8,
-            elevation: 8,
-          }}
+          style={styles.fab}
           activeOpacity={0.8}
         >
           <ScanBarcode size={28} color="#0f172a" strokeWidth={2.5} />
@@ -169,3 +164,151 @@ export default function DashboardScreen() {
     </SafeAreaView>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#0f172a',
+  },
+  scrollView: {
+    flex: 1,
+  },
+  header: {
+    paddingHorizontal: 24,
+    paddingVertical: 16,
+  },
+  greetingContainer: {
+    marginBottom: 12,
+  },
+  greeting: {
+    color: '#ffffff',
+    fontSize: 20,
+    fontWeight: 'bold',
+  },
+  badgesRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  adminButton: {
+    backgroundColor: 'rgba(168, 85, 247, 0.2)',
+    padding: 8,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(168, 85, 247, 0.3)',
+  },
+  iconButton: {
+    backgroundColor: '#1e293b',
+    padding: 8,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#334155',
+  },
+  planBadge: {
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 9999,
+    borderWidth: 1,
+  },
+  planText: {
+    fontSize: 12,
+    fontWeight: 'bold',
+  },
+  searchCard: {
+    marginHorizontal: 24,
+    marginTop: 16,
+    padding: 24,
+    borderRadius: 16,
+    backgroundColor: '#1e293b',
+    borderWidth: 1,
+    borderColor: '#334155',
+  },
+  searchCardTitle: {
+    color: '#94a3b8',
+    marginBottom: 16,
+    fontSize: 16,
+  },
+  searchInput: {
+    backgroundColor: 'rgba(15, 23, 42, 0.5)',
+    height: 48,
+    borderRadius: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    borderWidth: 1,
+    borderColor: '#334155',
+  },
+  searchInputText: {
+    color: '#64748b',
+    marginLeft: 12,
+    fontSize: 16,
+  },
+  quickSearchSection: {
+    marginHorizontal: 24,
+    marginTop: 32,
+    marginBottom: 24,
+  },
+  quickSearchTitle: {
+    color: '#ffffff',
+    fontWeight: 'bold',
+    fontSize: 18,
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  quickSearchSubtitle: {
+    color: '#94a3b8',
+    fontSize: 14,
+    marginBottom: 24,
+    textAlign: 'center',
+  },
+  adSpace: {
+    backgroundColor: 'rgba(30, 41, 59, 0.3)',
+    borderRadius: 12,
+    padding: 48,
+    borderWidth: 1,
+    borderColor: 'rgba(51, 65, 85, 0.3)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 24,
+    minHeight: 200,
+  },
+  adSpaceText: {
+    color: '#64748b',
+    fontSize: 14,
+    textAlign: 'center',
+  },
+  aboutSection: {
+    paddingHorizontal: 24,
+    marginBottom: 32,
+  },
+  aboutButton: {
+    backgroundColor: 'rgba(30, 41, 59, 0.5)',
+    borderRadius: 12,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: 'rgba(51, 65, 85, 0.5)',
+  },
+  aboutButtonText: {
+    color: '#94a3b8',
+    textAlign: 'center',
+    fontSize: 14,
+  },
+  fabContainer: {
+    position: 'absolute',
+    bottom: 24,
+    right: 24,
+  },
+  fab: {
+    width: 64,
+    height: 64,
+    backgroundColor: '#06b6d4',
+    borderRadius: 32,
+    alignItems: 'center',
+    justifyContent: 'center',
+    shadowColor: '#06b6d4',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.4,
+    shadowRadius: 8,
+    elevation: 8,
+  },
+});
