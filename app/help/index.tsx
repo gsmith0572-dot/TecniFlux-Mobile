@@ -1,4 +1,4 @@
-import { View, Text, TouchableOpacity, ScrollView, Linking } from 'react-native';
+import { View, Text, TouchableOpacity, ScrollView, Linking, StyleSheet } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -41,55 +41,54 @@ export default function HelpScreen() {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-slate-900">
+    <SafeAreaView style={styles.container}>
       <StatusBar style="light" />
       
       {/* Header */}
-      <View className="flex-row items-center px-6 py-4 border-b border-slate-800">
+      <View style={styles.header}>
         <TouchableOpacity
           onPress={() => router.back()}
-          className="mr-4"
+          style={styles.backButton}
           activeOpacity={0.7}
         >
           <ArrowLeft size={24} color="#cbd5e1" />
         </TouchableOpacity>
-        <Text className="text-white text-xl font-bold">¿Necesitas ayuda?</Text>
+        <Text style={styles.headerTitle}>¿Necesitas ayuda?</Text>
       </View>
 
-      <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
+      <ScrollView style={styles.flex1} showsVerticalScrollIndicator={false}>
         {/* Sección FAQ */}
-        <View className="px-6 mt-6">
-          <View className="items-center mb-6">
+        <View style={styles.faqSection}>
+          <View style={styles.logoContainer}>
             <Image
               source={require('../../assets/images/tecniflux-logo.png')}
-              style={{ width: 150, height: 150 }}
+              style={{ width: 150, height: 150, backgroundColor: 'transparent' }}
               contentFit="contain"
-              className="bg-transparent"
             />
           </View>
 
-          <View className="flex-row items-center mb-4">
+          <View style={styles.sectionHeader}>
             <HelpCircle size={24} color="#06b6d4" />
-            <Text className="text-white text-lg font-bold ml-2">Preguntas Frecuentes</Text>
+            <Text style={styles.sectionTitle}>Preguntas Frecuentes</Text>
           </View>
 
           {faqs.map((faq) => (
             <TouchableOpacity
               key={faq.id}
               onPress={() => toggleFAQ(faq.id)}
-              className="bg-slate-800 rounded-xl p-4 mb-3 border border-slate-700"
+              style={styles.faqCard}
               activeOpacity={0.8}
             >
-              <View className="flex-row justify-between items-center">
-                <Text className="text-slate-200 font-semibold flex-1 pr-2">
+              <View style={styles.faqHeader}>
+                <Text style={styles.faqQuestion}>
                   {faq.question}
                 </Text>
-                <Text className="text-cyan-400 text-xl">
+                <Text style={styles.faqToggle}>
                   {expandedFAQ === faq.id ? '−' : '+'}
                 </Text>
               </View>
               {expandedFAQ === faq.id && (
-                <Text className="text-slate-300 mt-3 text-sm leading-5">
+                <Text style={styles.faqAnswer}>
                   {faq.answer}
                 </Text>
               )}
@@ -98,20 +97,20 @@ export default function HelpScreen() {
         </View>
 
         {/* Sección Contacto */}
-        <View className="px-6 mt-8 mb-8">
-          <View className="flex-row items-center mb-4">
+        <View style={styles.contactSection}>
+          <View style={styles.sectionHeader}>
             <MessageCircle size={24} color="#06b6d4" />
-            <Text className="text-white text-lg font-bold ml-2">Contacto</Text>
+            <Text style={styles.sectionTitle}>Contacto</Text>
           </View>
 
           {/* Botón WhatsApp */}
           <TouchableOpacity
             onPress={handleWhatsApp}
-            className="bg-green-500 rounded-xl p-4 mb-3 flex-row items-center justify-center"
+            style={styles.whatsappButton}
             activeOpacity={0.8}
           >
             <Phone size={24} color="#0f172a" />
-            <Text className="text-slate-900 font-bold text-lg ml-3">
+            <Text style={styles.whatsappButtonText}>
               Contactar por WhatsApp
             </Text>
           </TouchableOpacity>
@@ -119,11 +118,11 @@ export default function HelpScreen() {
           {/* Botón Email */}
           <TouchableOpacity
             onPress={handleEmail}
-            className="bg-slate-800 rounded-xl p-4 border border-slate-700 flex-row items-center justify-center"
+            style={styles.emailButton}
             activeOpacity={0.8}
           >
             <Mail size={24} color="#cbd5e1" />
-            <Text className="text-slate-300 font-semibold text-base ml-3">
+            <Text style={styles.emailButtonText}>
               Enviar Email
             </Text>
           </TouchableOpacity>
@@ -133,3 +132,112 @@ export default function HelpScreen() {
   );
 }
 
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#0f172a',
+  },
+  flex1: {
+    flex: 1,
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 24,
+    paddingVertical: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: '#1e293b',
+  },
+  backButton: {
+    marginRight: 16,
+  },
+  headerTitle: {
+    color: '#ffffff',
+    fontSize: 20,
+    fontWeight: 'bold',
+  },
+  faqSection: {
+    paddingHorizontal: 24,
+    marginTop: 24,
+  },
+  logoContainer: {
+    alignItems: 'center',
+    marginBottom: 24,
+  },
+  sectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  sectionTitle: {
+    color: '#ffffff',
+    fontSize: 18,
+    fontWeight: 'bold',
+    marginLeft: 8,
+  },
+  faqCard: {
+    backgroundColor: '#1e293b',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: '#334155',
+  },
+  faqHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  faqQuestion: {
+    color: '#cbd5e1',
+    fontWeight: '600',
+    flex: 1,
+    paddingRight: 8,
+  },
+  faqToggle: {
+    color: '#06b6d4',
+    fontSize: 20,
+  },
+  faqAnswer: {
+    color: '#cbd5e1',
+    marginTop: 12,
+    fontSize: 14,
+    lineHeight: 20,
+  },
+  contactSection: {
+    paddingHorizontal: 24,
+    marginTop: 32,
+    marginBottom: 32,
+  },
+  whatsappButton: {
+    backgroundColor: '#22c55e',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  whatsappButtonText: {
+    color: '#0f172a',
+    fontWeight: 'bold',
+    fontSize: 18,
+    marginLeft: 12,
+  },
+  emailButton: {
+    backgroundColor: '#1e293b',
+    borderRadius: 12,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: '#334155',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  emailButtonText: {
+    color: '#cbd5e1',
+    fontWeight: '600',
+    fontSize: 16,
+    marginLeft: 12,
+  },
+});
