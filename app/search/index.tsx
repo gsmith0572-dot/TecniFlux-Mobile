@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TouchableOpacity, FlatList, Alert, ScrollView } from 'react-native';
+import { View, Text, TouchableOpacity, FlatList, Alert, ScrollView, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
 import { FileText, LogOut, ChevronDown, AlertCircle, ArrowLeft } from 'lucide-react-native';
 import { diagramAPI } from '../services/api';
@@ -159,23 +159,23 @@ export default function SearchScreen() {
     <TouchableOpacity
       onPress={() => handleOpenDiagram(item)}
       activeOpacity={0.7}
-      className="bg-slate-800 rounded-xl p-5 mb-4 border border-slate-700"
+      style={styles.diagramCard}
     >
-      <View className="flex-row items-start">
-        <View className="bg-cyan-500/20 p-3 rounded-lg border border-cyan-500/30 mr-4">
+      <View style={styles.diagramRow}>
+        <View style={styles.diagramIconContainer}>
           <FileText size={28} color="#06b6d4" />
         </View>
-        <View className="flex-1">
-          <Text className="text-white text-lg font-bold">
+        <View style={styles.diagramContent}>
+          <Text style={styles.diagramTitle}>
             {item.make} {item.model}
           </Text>
           {item.year && (
-            <Text className="text-cyan-400 text-sm mt-1">
+            <Text style={styles.diagramYear}>
               Año: {item.year}
             </Text>
           )}
           {item.system && (
-            <Text className="text-slate-400 text-sm mt-1">
+            <Text style={styles.diagramSystem}>
               Sistema: {item.system}
             </Text>
           )}
@@ -184,45 +184,72 @@ export default function SearchScreen() {
     </TouchableOpacity>
   );
 
+  const getWarningStyle = () => {
+    if (remainingSearches === 0) {
+      return { backgroundColor: 'rgba(239, 68, 68, 0.2)', borderColor: 'rgba(239, 68, 68, 0.3)' };
+    } else if (remainingSearches !== null && remainingSearches <= (subscription?.plan === 'free' ? 1 : 5)) {
+      return { backgroundColor: 'rgba(234, 179, 8, 0.2)', borderColor: 'rgba(234, 179, 8, 0.3)' };
+    }
+    return { backgroundColor: 'rgba(59, 130, 246, 0.2)', borderColor: 'rgba(59, 130, 246, 0.3)' };
+  };
+
+  const getWarningTextColor = () => {
+    if (remainingSearches === 0) {
+      return '#ef4444';
+    } else if (remainingSearches !== null && remainingSearches <= (subscription?.plan === 'free' ? 1 : 5)) {
+      return '#eab308';
+    }
+    return '#3b82f6';
+  };
+
+  const getWarningIconColor = () => {
+    if (remainingSearches === 0) {
+      return '#ef4444';
+    } else if (remainingSearches !== null && remainingSearches <= (subscription?.plan === 'free' ? 1 : 5)) {
+      return '#eab308';
+    }
+    return '#3b82f6';
+  };
+
   return (
-    <View className="flex-1 bg-slate-900">
-      <View className="flex-row items-center justify-between px-4 pt-12 pb-4 bg-slate-900 border-b border-slate-800">
+    <View style={styles.container}>
+      <View style={styles.header}>
         <TouchableOpacity 
           onPress={() => router.back()}
-          className="bg-slate-800 p-3 rounded-full"
+          style={styles.backButton}
           activeOpacity={0.8}
         >
-          <ArrowLeft size={24} color="white" />
+          <ArrowLeft size={24} color="#ffffff" />
         </TouchableOpacity>
         
-        <Text className="text-white text-xl font-bold">TecniFlux</Text>
+        <Text style={styles.headerTitle}>TecniFlux</Text>
         
         <TouchableOpacity 
           onPress={handleLogout}
-          className="bg-red-500/20 p-3 rounded-full border border-red-500/30"
+          style={styles.logoutButton}
           activeOpacity={0.8}
         >
           <LogOut size={24} color="#ef4444" />
         </TouchableOpacity>
       </View>
 
-      <View className="px-6 py-6">
-        <View className="mb-4">
+      <View style={styles.content}>
+        <View style={styles.dropdownContainer}>
           <TouchableOpacity
             onPress={() => {
               setShowMakeDropdown(!showMakeDropdown);
               setShowYearDropdown(false);
             }}
-            className="bg-slate-800 rounded-xl px-4 py-4 flex-row items-center justify-between border border-slate-700"
+            style={styles.dropdown}
           >
-            <Text className={selectedMake ? "text-white text-base" : "text-slate-500 text-base"}>
+            <Text style={[styles.dropdownText, !selectedMake && styles.dropdownPlaceholder]}>
               {selectedMake || "Selecciona una marca"}
             </Text>
             <ChevronDown size={22} color="#06b6d4" />
           </TouchableOpacity>
 
           {showMakeDropdown && (
-            <View className="bg-slate-800 rounded-xl mt-2 border border-slate-700 max-h-60">
+            <View style={styles.dropdownList}>
               <ScrollView>
                 {VEHICLE_MAKES.map((make) => (
                   <TouchableOpacity
@@ -231,9 +258,9 @@ export default function SearchScreen() {
                       setSelectedMake(make);
                       setShowMakeDropdown(false);
                     }}
-                    className="px-4 py-3 border-b border-slate-700/50"
+                    style={styles.dropdownItem}
                   >
-                    <Text className="text-white text-base">{make}</Text>
+                    <Text style={styles.dropdownItemText}>{make}</Text>
                   </TouchableOpacity>
                 ))}
               </ScrollView>
@@ -241,31 +268,31 @@ export default function SearchScreen() {
           )}
         </View>
 
-        <View className="mb-4">
+        <View style={styles.dropdownContainer}>
           <TouchableOpacity
             onPress={() => {
               setShowYearDropdown(!showYearDropdown);
               setShowMakeDropdown(false);
             }}
-            className="bg-slate-800 rounded-xl px-4 py-4 flex-row items-center justify-between border border-slate-700"
+            style={styles.dropdown}
           >
-            <Text className={selectedYear ? "text-white text-base" : "text-slate-500 text-base"}>
+            <Text style={[styles.dropdownText, !selectedYear && styles.dropdownPlaceholder]}>
               {selectedYear || "Todos los años"}
             </Text>
             <ChevronDown size={22} color="#06b6d4" />
           </TouchableOpacity>
 
           {showYearDropdown && (
-            <View className="bg-slate-800 rounded-xl mt-2 border border-slate-700 max-h-60">
+            <View style={styles.dropdownList}>
               <ScrollView>
                 <TouchableOpacity
                   onPress={() => {
                     setSelectedYear('');
                     setShowYearDropdown(false);
                   }}
-                  className="px-4 py-3 border-b border-slate-700/50"
+                  style={styles.dropdownItem}
                 >
-                  <Text className="text-slate-400 text-base">Todos los años</Text>
+                  <Text style={styles.dropdownItemTextAlt}>Todos los años</Text>
                 </TouchableOpacity>
                 {YEARS.map((year) => (
                   <TouchableOpacity
@@ -274,9 +301,9 @@ export default function SearchScreen() {
                       setSelectedYear(year);
                       setShowYearDropdown(false);
                     }}
-                    className="px-4 py-3 border-b border-slate-700/50"
+                    style={styles.dropdownItem}
                   >
-                    <Text className="text-white text-base">{year}</Text>
+                    <Text style={styles.dropdownItemText}>{year}</Text>
                   </TouchableOpacity>
                 ))}
               </ScrollView>
@@ -286,27 +313,9 @@ export default function SearchScreen() {
 
         {/* Search limit warning para planes con límite */}
         {!hasUnlimited && remainingSearches !== null && (
-          <View className={`mb-4 border rounded-xl px-4 py-3 flex-row items-center ${
-            remainingSearches === 0 
-              ? 'bg-red-500/20 border-red-500/30' 
-              : remainingSearches <= (subscription?.plan === 'free' ? 1 : 5)
-              ? 'bg-yellow-500/20 border-yellow-500/30'
-              : 'bg-blue-500/20 border-blue-500/30'
-          }`}>
-            <AlertCircle size={20} color={
-              remainingSearches === 0 
-                ? '#ef4444' 
-                : remainingSearches <= (subscription?.plan === 'free' ? 1 : 5)
-                ? '#eab308'
-                : '#3b82f6'
-            } />
-            <Text className={`text-sm ml-2 flex-1 ${
-              remainingSearches === 0 
-                ? 'text-red-400' 
-                : remainingSearches <= (subscription?.plan === 'free' ? 1 : 5)
-                ? 'text-yellow-400'
-                : 'text-blue-400'
-            }`}>
+          <View style={[styles.warningContainer, getWarningStyle()]}>
+            <AlertCircle size={20} color={getWarningIconColor()} />
+            <Text style={[styles.warningText, { color: getWarningTextColor() }]}>
               {remainingSearches > 0 
                 ? `${remainingSearches} búsqueda${remainingSearches !== 1 ? 's' : ''} restante${remainingSearches !== 1 ? 's' : ''} este mes`
                 : 'Límite mensual alcanzado'
@@ -314,7 +323,7 @@ export default function SearchScreen() {
             </Text>
             {remainingSearches === 0 && (
               <TouchableOpacity onPress={() => router.push('/pricing')}>
-                <Text className="text-red-400 text-sm font-bold">UPGRADE</Text>
+                <Text style={styles.upgradeText}>UPGRADE</Text>
               </TouchableOpacity>
             )}
           </View>
@@ -323,24 +332,27 @@ export default function SearchScreen() {
         <TouchableOpacity
           onPress={handleSearch}
           disabled={loading || !selectedMake || (!hasUnlimited && remainingSearches !== null && remainingSearches <= 0)}
-          className={`rounded-xl py-4 ${!selectedMake || loading || (!hasUnlimited && remainingSearches !== null && remainingSearches <= 0) ? 'bg-slate-700' : 'bg-cyan-500'}`}
+          style={[
+            styles.searchButton,
+            (!selectedMake || loading || (!hasUnlimited && remainingSearches !== null && remainingSearches <= 0)) && styles.searchButtonDisabled
+          ]}
           activeOpacity={0.8}
         >
-          <Text className="text-white text-center font-bold text-lg">
+          <Text style={styles.searchButtonText}>
             {loading ? 'Buscando...' : 'Buscar Diagramas'}
           </Text>
         </TouchableOpacity>
       </View>
 
-      <View className="flex-1 px-6">
+      <View style={styles.resultsContainer}>
         {diagrams.length === 0 ? (
-          <View className="flex-1 justify-center items-center">
-            <View className="bg-slate-800/50 p-8 rounded-2xl items-center">
+          <View style={styles.emptyContainer}>
+            <View style={styles.emptyCard}>
               <FileText size={72} color="#475569" />
-              <Text className="text-slate-400 text-lg mt-4 text-center">
+              <Text style={styles.emptyText}>
                 Busca diagramas técnicos
               </Text>
-              <Text className="text-slate-500 text-sm mt-2 text-center">
+              <Text style={styles.emptySubtext}>
                 Selecciona una marca y opcionalmente un año
               </Text>
             </View>
@@ -363,3 +375,183 @@ export default function SearchScreen() {
     </View>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: '#0f172a',
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingTop: 48,
+    paddingBottom: 16,
+    backgroundColor: '#0f172a',
+    borderBottomWidth: 1,
+    borderBottomColor: '#1e293b',
+  },
+  backButton: {
+    backgroundColor: '#1e293b',
+    padding: 12,
+    borderRadius: 9999,
+  },
+  headerTitle: {
+    color: '#ffffff',
+    fontSize: 20,
+    fontWeight: 'bold',
+  },
+  logoutButton: {
+    backgroundColor: 'rgba(239, 68, 68, 0.2)',
+    padding: 12,
+    borderRadius: 9999,
+    borderWidth: 1,
+    borderColor: 'rgba(239, 68, 68, 0.3)',
+  },
+  content: {
+    paddingHorizontal: 24,
+    paddingVertical: 24,
+  },
+  dropdownContainer: {
+    marginBottom: 16,
+  },
+  dropdown: {
+    backgroundColor: '#1e293b',
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    borderWidth: 1,
+    borderColor: '#334155',
+  },
+  dropdownText: {
+    color: '#ffffff',
+    fontSize: 16,
+  },
+  dropdownPlaceholder: {
+    color: '#64748b',
+  },
+  dropdownList: {
+    backgroundColor: '#1e293b',
+    borderRadius: 12,
+    marginTop: 8,
+    borderWidth: 1,
+    borderColor: '#334155',
+    maxHeight: 240,
+  },
+  dropdownItem: {
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: 'rgba(51, 65, 85, 0.5)',
+  },
+  dropdownItemText: {
+    color: '#ffffff',
+    fontSize: 16,
+  },
+  dropdownItemTextAlt: {
+    color: '#94a3b8',
+    fontSize: 16,
+  },
+  warningContainer: {
+    marginBottom: 16,
+    borderWidth: 1,
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  warningText: {
+    fontSize: 14,
+    marginLeft: 8,
+    flex: 1,
+  },
+  upgradeText: {
+    color: '#ef4444',
+    fontSize: 14,
+    fontWeight: 'bold',
+  },
+  searchButton: {
+    borderRadius: 12,
+    paddingVertical: 16,
+    backgroundColor: '#06b6d4',
+  },
+  searchButtonDisabled: {
+    backgroundColor: '#334155',
+  },
+  searchButtonText: {
+    color: '#ffffff',
+    textAlign: 'center',
+    fontWeight: 'bold',
+    fontSize: 18,
+  },
+  resultsContainer: {
+    flex: 1,
+    paddingHorizontal: 24,
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  emptyCard: {
+    backgroundColor: 'rgba(30, 41, 59, 0.5)',
+    padding: 32,
+    borderRadius: 16,
+    alignItems: 'center',
+  },
+  emptyText: {
+    color: '#94a3b8',
+    fontSize: 18,
+    marginTop: 16,
+    textAlign: 'center',
+  },
+  emptySubtext: {
+    color: '#64748b',
+    fontSize: 14,
+    marginTop: 8,
+    textAlign: 'center',
+  },
+  diagramCard: {
+    backgroundColor: '#1e293b',
+    borderRadius: 12,
+    padding: 20,
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: '#334155',
+  },
+  diagramRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+  },
+  diagramIconContainer: {
+    backgroundColor: 'rgba(6, 182, 212, 0.2)',
+    padding: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: 'rgba(6, 182, 212, 0.3)',
+    marginRight: 16,
+  },
+  diagramContent: {
+    flex: 1,
+  },
+  diagramTitle: {
+    color: '#ffffff',
+    fontSize: 18,
+    fontWeight: 'bold',
+  },
+  diagramYear: {
+    color: '#06b6d4',
+    fontSize: 14,
+    marginTop: 4,
+  },
+  diagramSystem: {
+    color: '#94a3b8',
+    fontSize: 14,
+    marginTop: 4,
+  },
+});
