@@ -12,6 +12,13 @@ export default function CheckoutScreen() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
 
+  // Logs de debugging al montar el componente
+  console.log('[Checkout] 🚀 CheckoutScreen montado');
+  console.log('[Checkout] 📦 Parámetros recibidos:', { url, planId });
+  console.log('[Checkout] 🔍 URL type:', typeof url);
+  console.log('[Checkout] 🔍 URL length:', url?.length);
+  console.log('[Checkout] 🔍 URL preview:', url?.substring(0, 50));
+
   const handleNavigationChange = (navState: any) => {
     const currentUrl = navState.url;
     console.log('[Checkout] Navigation change:', currentUrl);
@@ -173,13 +180,19 @@ export default function CheckoutScreen() {
     );
   };
 
+  // Validar URL antes de renderizar
   if (!url) {
+    console.error('[Checkout] ❌ ERROR: No se proporcionó URL de checkout');
+    console.error('[Checkout] ❌ Parámetros completos:', { url, planId });
     return (
       <SafeAreaView className="flex-1 bg-slate-900">
         <StatusBar style="light" />
         <View className="flex-1 justify-center items-center px-6">
           <Text className="text-red-400 text-center mb-4">
             Error: No se proporcionó URL de checkout
+          </Text>
+          <Text className="text-gray-400 text-center mb-4 text-xs">
+            Por favor, intenta seleccionar el plan nuevamente
           </Text>
           <Text
             className="text-cyan-400 text-center underline"
@@ -191,6 +204,33 @@ export default function CheckoutScreen() {
       </SafeAreaView>
     );
   }
+
+  // Validar que la URL sea válida
+  if (!url.startsWith('http://') && !url.startsWith('https://')) {
+    console.error('[Checkout] ❌ ERROR: URL inválida (no comienza con http/https):', url);
+    return (
+      <SafeAreaView className="flex-1 bg-slate-900">
+        <StatusBar style="light" />
+        <View className="flex-1 justify-center items-center px-6">
+          <Text className="text-red-400 text-center mb-4">
+            Error: URL de checkout inválida
+          </Text>
+          <Text className="text-gray-400 text-center mb-4 text-xs">
+            {url.substring(0, 100)}
+          </Text>
+          <Text
+            className="text-cyan-400 text-center underline"
+            onPress={() => router.back()}
+          >
+            Volver
+          </Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  console.log('[Checkout] ✅ URL validada correctamente');
+  console.log('[Checkout] 🌐 Abriendo WebView con URL:', url);
 
   return (
     <SafeAreaView className="flex-1 bg-slate-900">
@@ -207,19 +247,30 @@ export default function CheckoutScreen() {
 
       <WebView
         source={{ uri: url }}
-        onNavigationStateChange={handleNavigationChange}
+        onNavigationStateChange={(navState) => {
+          console.log('[Checkout] 🔄 Navigation state changed');
+          console.log('[Checkout] 🔄 URL:', navState.url);
+          console.log('[Checkout] 🔄 Loading:', navState.loading);
+          console.log('[Checkout] 🔄 Can go back:', navState.canGoBack);
+          handleNavigationChange(navState);
+        }}
         onShouldStartLoadWithRequest={(request) => {
-          console.log('[Checkout] Should start load:', request.url);
+          console.log('[Checkout] 🤔 Should start load with request:', request.url);
+          console.log('[Checkout] 🤔 Navigation type:', request.navigationType);
           handleNavigationChange({ url: request.url });
           return true;
         }}
         onLoadStart={() => {
-          console.log('[Checkout] Load started');
+          console.log('[Checkout] 📥 Load started');
           setLoading(true);
         }}
         onLoadEnd={() => {
-          console.log('[Checkout] Load ended');
+          console.log('[Checkout] ✅ Load ended');
           setLoading(false);
+        }}
+        onLoadProgress={(syntheticEvent) => {
+          const { nativeEvent } = syntheticEvent;
+          console.log('[Checkout] 📊 Load progress:', Math.round(nativeEvent.progress * 100) + '%');
         }}
         onError={(syntheticEvent) => {
           const { nativeEvent } = syntheticEvent;

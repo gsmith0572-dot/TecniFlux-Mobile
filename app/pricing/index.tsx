@@ -86,27 +86,65 @@ export default function PricingScreen() {
       return;
     }
 
+    console.log('[Pricing] 🎯 Usuario seleccionó plan:', planId);
     setLoading(true);
 
     try {
-      console.log('[Pricing] Creando checkout session para plan:', planId);
+      console.log('[Pricing] 🚀 Iniciando creación de checkout session para plan:', planId);
       
       // Crear sesión de pago en Stripe
-      const { sessionId, url } = await subscriptionAPI.createCheckoutSession(planId);
-      console.log('[Pricing] ✅ Checkout session creada:', { sessionId, url });
+      const checkoutData = await subscriptionAPI.createCheckoutSession(planId);
+      console.log('[Pricing] ✅ Checkout session creada exitosamente');
+      console.log('[Pricing] 📦 Datos recibidos:', {
+        sessionId: checkoutData.sessionId,
+        url: checkoutData.url,
+        urlLength: checkoutData.url?.length,
+        urlStartsWith: checkoutData.url?.substring(0, 30),
+      });
+      
+      // Validar que tenemos una URL válida
+      if (!checkoutData.url) {
+        console.error('[Pricing] ❌ No se recibió URL de checkout');
+        throw new Error('No se recibió URL de checkout del servidor');
+      }
+      
+      if (!checkoutData.url.startsWith('http://') && !checkoutData.url.startsWith('https://')) {
+        console.error('[Pricing] ❌ URL de checkout inválida:', checkoutData.url);
+        throw new Error('URL de checkout inválida');
+      }
+      
+      console.log('[Pricing] ✅ URL validada, navegando a checkout screen');
+      console.log('[Pricing] 📍 URL completa:', checkoutData.url);
       
       // Abrir WebView de Stripe
       router.push({
         pathname: '/checkout',
-        params: { url, planId },
+        params: { 
+          url: checkoutData.url,
+          planId: planId,
+        },
       });
       
+      console.log('[Pricing] ✅ Navegación a checkout iniciada');
       setLoading(false);
     } catch (error: any) {
-      console.error('[Pricing] ❌ Error al crear checkout:', error);
+      console.error('[Pricing] ❌ Error completo al crear checkout:', error);
+      console.error('[Pricing] ❌ Error message:', error.message);
+      console.error('[Pricing] ❌ Error stack:', error.stack);
+      
+      const errorMessage = error.message || error.response?.data?.message || 'No se pudo iniciar el proceso de pago. Intenta de nuevo.';
+      
       Alert.alert(
         'Error',
-        error.response?.data?.message || 'No se pudo iniciar el proceso de pago. Intenta de nuevo.'
+        errorMessage,
+        [
+          {
+            text: 'OK',
+            onPress: () => {
+              console.log('[Pricing] Usuario cerró alerta de error');
+            },
+          },
+        ]
       );
       setLoading(false);
     }

@@ -402,18 +402,73 @@ export const subscriptionAPI = {
   },
 
   createCheckoutSession: async (planId: string): Promise<CheckoutSession> => {
-    console.log('[subscriptionAPI] Creando checkout session para plan:', planId);
+    console.log('[subscriptionAPI] 🚀 Iniciando creación de checkout session para plan:', planId);
+    console.log('[subscriptionAPI] 📡 Endpoint: POST /create-subscription');
+    console.log('[subscriptionAPI] 📦 Payload:', { planId });
+    
     try {
       const response = await api.post('/create-subscription', { planId });
-      console.log('[subscriptionAPI] ✅ Checkout session creada:', response.data);
+      
+      console.log('[subscriptionAPI] 📥 Respuesta completa del backend:', JSON.stringify(response.data, null, 2));
+      console.log('[subscriptionAPI] 📥 Status:', response.status);
+      console.log('[subscriptionAPI] 📥 Headers:', response.headers);
+      
+      // Verificar que la respuesta tenga los datos necesarios
+      if (!response.data) {
+        console.error('[subscriptionAPI] ❌ Respuesta vacía del backend');
+        throw new Error('El servidor no devolvió datos de checkout');
+      }
+      
+      // Extraer URL y sessionId de diferentes posibles campos
+      const sessionId = response.data.sessionId || response.data.id || response.data.session_id;
+      const url = response.data.url || response.data.checkoutUrl || response.data.checkout_url;
+      
+      console.log('[subscriptionAPI] 🔍 sessionId extraído:', sessionId);
+      console.log('[subscriptionAPI] 🔍 URL extraída:', url);
+      
+      // Validar que tenemos una URL
+      if (!url) {
+        console.error('[subscriptionAPI] ❌ No se encontró URL en la respuesta');
+        console.error('[subscriptionAPI] ❌ Campos disponibles en response.data:', Object.keys(response.data));
+        throw new Error('No se recibió URL de checkout del servidor');
+      }
+      
+      // Validar que la URL sea válida
+      if (!url.startsWith('http://') && !url.startsWith('https://')) {
+        console.error('[subscriptionAPI] ❌ URL inválida (no comienza con http/https):', url);
+        throw new Error('URL de checkout inválida');
+      }
+      
+      console.log('[subscriptionAPI] ✅ Checkout session creada exitosamente');
+      console.log('[subscriptionAPI] ✅ sessionId:', sessionId);
+      console.log('[subscriptionAPI] ✅ URL:', url);
       
       return {
-        sessionId: response.data.sessionId || response.data.id,
-        url: response.data.url || response.data.checkoutUrl,
+        sessionId: sessionId || '',
+        url: url,
       };
     } catch (error: any) {
-      console.error('[subscriptionAPI] ❌ Error al crear checkout:', error);
-      throw error;
+      console.error('[subscriptionAPI] ❌ Error al crear checkout session');
+      console.error('[subscriptionAPI] ❌ Error completo:', error);
+      console.error('[subscriptionAPI] ❌ Error message:', error.message);
+      console.error('[subscriptionAPI] ❌ Error response:', error.response?.data);
+      console.error('[subscriptionAPI] ❌ Error status:', error.response?.status);
+      console.error('[subscriptionAPI] ❌ Error headers:', error.response?.headers);
+      
+      // Proporcionar mensaje de error más descriptivo
+      let errorMessage = 'No se pudo crear la sesión de pago. Intenta de nuevo.';
+      
+      if (error.response?.data?.message) {
+        errorMessage = error.response.data.message;
+      } else if (error.message) {
+        errorMessage = error.message;
+      } else if (error.response?.status === 401) {
+        errorMessage = 'Sesión expirada. Por favor inicia sesión nuevamente.';
+      } else if (error.response?.status === 500) {
+        errorMessage = 'Error del servidor. Por favor intenta más tarde.';
+      }
+      
+      throw new Error(errorMessage);
     }
   },
 
