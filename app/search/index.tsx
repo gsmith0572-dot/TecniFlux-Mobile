@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, TouchableOpacity, FlatList, Alert, ScrollView, StyleSheet } from 'react-native';
 import { useRouter } from 'expo-router';
 import { FileText, LogOut, ChevronDown, AlertCircle, ArrowLeft } from 'lucide-react-native';
-import { diagramAPI } from '../services/api';
+import { diagramAPI, authAPI } from '../services/api';
 import * as SecureStore from 'expo-secure-store';
 import { useSubscription } from '../../hooks/useSubscription';
 import PaywallOverlay from '../../components/PaywallOverlay';
@@ -125,7 +125,7 @@ export default function SearchScreen() {
     } catch (error: any) {
       if (error.response?.status === 401) {
         Alert.alert('Sesión expirada', 'Por favor inicia sesión nuevamente');
-        await SecureStore.deleteItemAsync('userToken');
+        await authAPI.logout();
         router.replace('/login');
       } else {
         Alert.alert('Error', 'No se pudo realizar la búsqueda.');
@@ -151,8 +151,14 @@ export default function SearchScreen() {
   };
 
   const handleLogout = async () => {
-    await SecureStore.deleteItemAsync('userToken');
-    router.replace('/login');
+    try {
+      await authAPI.logout();
+      router.replace('/login');
+    } catch (error) {
+      console.error('[SearchScreen] Error en logout:', error);
+      // Aún así redirigir al login aunque haya error
+      router.replace('/login');
+    }
   };
 
   const renderDiagram = ({ item }: { item: Diagram }) => (

@@ -249,8 +249,68 @@ export const authAPI = {
   },
   
   logout: async () => {
-    await SecureStore.deleteItemAsync('userToken');
-    await SecureStore.deleteItemAsync('userData');
+    console.log('[authAPI.logout] 🚪 Iniciando logout...');
+    
+    // Lista de todas las claves que deben eliminarse
+    const keysToDelete = [
+      'userToken',
+      'userData',
+      'userSubscription',
+      'searchHistory',
+      'searchCount',
+      'searchResetDate',
+      // Limpiar también posibles variantes
+      'authToken',
+      'token',
+    ];
+
+    // Eliminar todas las claves de SecureStore
+    // En Android, SecureStore puede tener problemas de sincronización,
+    // así que eliminamos cada una individualmente y verificamos
+    for (const key of keysToDelete) {
+      try {
+        await SecureStore.deleteItemAsync(key);
+        // Verificar que se eliminó correctamente (especialmente importante en Android)
+        const verify = await SecureStore.getItemAsync(key);
+        if (verify !== null) {
+          console.warn(`[authAPI.logout] ⚠️ La clave ${key} aún existe después de eliminar, reintentando...`);
+          // Reintentar una vez más
+          await SecureStore.deleteItemAsync(key);
+          const verifyAgain = await SecureStore.getItemAsync(key);
+          if (verifyAgain !== null) {
+            console.error(`[authAPI.logout] ❌ No se pudo eliminar ${key} después de 2 intentos`);
+          } else {
+            console.log(`[authAPI.logout] ✅ ${key} eliminado correctamente (segundo intento)`);
+          }
+        } else {
+          console.log(`[authAPI.logout] ✅ ${key} eliminado correctamente`);
+        }
+      } catch (error) {
+        console.error(`[authAPI.logout] ❌ Error al eliminar ${key}:`, error);
+        // Continuar con las demás claves aunque una falle
+      }
+    }
+
+    // CRÍTICO: Limpiar headers de axios explícitamente
+    // Esto asegura que no se use un token en memoria
+    delete api.defaults.headers.common['Authorization'];
+    console.log('[authAPI.logout] ✅ Headers de axios limpiados');
+
+    // Verificar que no quede token en SecureStore
+    const remainingToken = await SecureStore.getItemAsync('userToken');
+    if (remainingToken !== null) {
+      console.error('[authAPI.logout] ❌ ADVERTENCIA: Token aún existe después del logout');
+      // Forzar eliminación una vez más
+      try {
+        await SecureStore.deleteItemAsync('userToken');
+      } catch (error) {
+        console.error('[authAPI.logout] ❌ Error crítico al forzar eliminación del token:', error);
+      }
+    } else {
+      console.log('[authAPI.logout] ✅ Verificación: Token eliminado correctamente');
+    }
+
+    console.log('[authAPI.logout] ✅ Logout completado');
   }
 };
 
