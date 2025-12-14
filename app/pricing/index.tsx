@@ -1,9 +1,8 @@
 import { useState } from 'react';
-import { View, Text, ScrollView, Alert, ActivityIndicator, StyleSheet } from 'react-native';
+import { View, Text, ScrollView, Alert, ActivityIndicator, StyleSheet, Linking } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
 import { useRouter } from 'expo-router';
-import { WebView } from 'react-native-webview';
 import { ArrowLeft } from 'lucide-react-native';
 import { TouchableOpacity } from 'react-native';
 import PricingCard from '../../components/PricingCard';
@@ -78,7 +77,6 @@ export default function PricingScreen() {
   const router = useRouter();
   const { subscription, refetch } = useSubscription();
   const [loading, setLoading] = useState(false);
-  const [checkoutUrl, setCheckoutUrl] = useState<string | null>(null);
 
   const handleSelectPlan = async (planId: string) => {
     if (planId === 'free') {
@@ -113,19 +111,20 @@ export default function PricingScreen() {
         throw new Error('URL de checkout inválida');
       }
       
-      console.log('[Pricing] ✅ URL validada, navegando a checkout screen');
+      console.log('[Pricing] ✅ URL validada, abriendo Stripe en navegador');
       console.log('[Pricing] 📍 URL completa:', checkoutData.url);
       
-      // Abrir WebView de Stripe
-      router.push({
-        pathname: '/checkout',
-        params: { 
-          url: checkoutData.url,
-          planId: planId,
-        },
-      });
+      // Abrir Stripe en el navegador del sistema (Safari/Chrome)
+      const canOpen = await Linking.canOpenURL(checkoutData.url);
+      if (!canOpen) {
+        console.error('[Pricing] ❌ No se puede abrir la URL:', checkoutData.url);
+        throw new Error('No se puede abrir la URL de checkout');
+      }
       
-      console.log('[Pricing] ✅ Navegación a checkout iniciada');
+      console.log('[Pricing] 🌐 Abriendo URL en navegador del sistema...');
+      await Linking.openURL(checkoutData.url);
+      console.log('[Pricing] ✅ Stripe abierto en navegador');
+      
       setLoading(false);
     } catch (error: any) {
       console.error('[Pricing] ❌ Error completo al crear checkout:', error);
@@ -149,59 +148,6 @@ export default function PricingScreen() {
       setLoading(false);
     }
   };
-
-  const handleCheckoutComplete = (url: string) => {
-    console.log('[Pricing] Checkout navigation:', url);
-    
-    if (url.includes('success') || url.includes('checkout/success')) {
-      setCheckoutUrl(null);
-      setLoading(false);
-      Alert.alert('¡Éxito!', 'Tu suscripción se ha activado correctamente', [
-        {
-          text: 'OK',
-          onPress: () => {
-            refetch();
-            router.push('/subscription');
-          },
-        },
-      ]);
-    } else if (url.includes('cancel') || url.includes('checkout/cancel')) {
-      setCheckoutUrl(null);
-      setLoading(false);
-    }
-  };
-
-  if (checkoutUrl) {
-    return (
-      <SafeAreaView style={styles.container}>
-        <StatusBar style="light" />
-        <View style={styles.flex1}>
-          <View style={styles.checkoutHeader}>
-            <TouchableOpacity
-              onPress={() => {
-                setCheckoutUrl(null);
-                setLoading(false);
-              }}
-              style={styles.backButton}
-            >
-              <ArrowLeft size={24} color="#ffffff" />
-            </TouchableOpacity>
-            <Text style={styles.checkoutHeaderText}>Completa tu pago</Text>
-          </View>
-          <WebView
-            source={{ uri: checkoutUrl }}
-            onNavigationStateChange={(navState) => {
-              handleCheckoutComplete(navState.url);
-            }}
-            onShouldStartLoadWithRequest={(request) => {
-              handleCheckoutComplete(request.url);
-              return true;
-            }}
-          />
-        </View>
-      </SafeAreaView>
-    );
-  }
 
   return (
     <SafeAreaView style={styles.container}>
@@ -251,26 +197,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#0f172a',
-  },
-  flex1: {
-    flex: 1,
-  },
-  checkoutHeader: {
-    backgroundColor: '#1e293b',
-    paddingHorizontal: 24,
-    paddingVertical: 16,
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderBottomWidth: 1,
-    borderBottomColor: '#334155',
-  },
-  backButton: {
-    marginRight: 16,
-  },
-  checkoutHeaderText: {
-    color: '#ffffff',
-    fontSize: 18,
-    fontWeight: 'bold',
   },
   header: {
     paddingHorizontal: 24,
