@@ -16,9 +16,10 @@ const api = axios.create({
 api.interceptors.request.use(
   async (config) => {
     // Endpoints públicos que NO deben tener token
-    const publicEndpoints = ['/auth/register', '/auth/login'];
+    // Endpoints públicos que NO deben tener token
+    // Incluimos variaciones porque config.url puede ser diferente en iOS vs Android
+    const publicEndpoints = ['/auth/register', '/auth/login', 'register', 'login'];
     const isPublicEndpoint = publicEndpoints.some(endpoint => config.url?.includes(endpoint));
-    
     // Si es un endpoint público, NO agregar token
     if (isPublicEndpoint) {
       console.log('[API Interceptor] 🔓 Endpoint público, sin token:', config.url);
