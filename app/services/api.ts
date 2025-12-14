@@ -14,30 +14,32 @@ const api = axios.create({
 
 // Request interceptor para agregar el token
 api.interceptors.request.use(
+api.interceptors.request.use(
   async (config) => {
     // Endpoints públicos que NO deben tener token
-    // Endpoints públicos que NO deben tener token
-    // Incluimos variaciones porque config.url puede ser diferente en iOS vs Android
     const publicEndpoints = ['/auth/register', '/auth/login', 'register', 'login'];
     const isPublicEndpoint = publicEndpoints.some(endpoint => config.url?.includes(endpoint));
-    // Si es un endpoint público, NO agregar token
+
+    console.log('[API Interceptor] 🔓 Endpoint público, sin token:', config.url);
+
+    // CRÍTICO: Si es endpoint público, BORRAR cualquier Authorization header
     if (isPublicEndpoint) {
-      console.log('[API Interceptor] 🔓 Endpoint público, sin token:', config.url);
+      delete config.headers.Authorization;
       return config;
     }
-    
-    // Para endpoints privados, agregar token si existe
+
+    // Para endpoints privados, agregar token
     const token = await SecureStore.getItemAsync('userToken');
-    
     if (token) {
-      console.log('[API Interceptor] 🔑 Token COMPLETO:', token);
-      console.log('[API Interceptor] 📏 Token length:', token.length);
-      console.log('[API Interceptor] 🎯 Primeros 50 chars:', token.substring(0, 50));
-      console.log('[API Interceptor] 🎯 Últimos 50 chars:', token.substring(token.length - 50));
       config.headers.Authorization = `Bearer ${token}`;
-      console.log('[API Interceptor] ✅ Header agregado');
-    } else {
-      console.warn('[API Interceptor] ⚠️ No se encontró token');
+    }
+
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  }
+);
     }
     
     console.log('[API Interceptor] URL:', config.url);
