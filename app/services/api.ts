@@ -16,19 +16,16 @@ const api = axios.create({
 api.interceptors.request.use(
 api.interceptors.request.use(
   async (config) => {
-    // Endpoints públicos que NO deben tener token
     const publicEndpoints = ['/auth/register', '/auth/login', 'register', 'login'];
     const isPublicEndpoint = publicEndpoints.some(endpoint => config.url?.includes(endpoint));
 
-    console.log('[API Interceptor] 🔓 Endpoint público, sin token:', config.url);
+    console.log('[API Interceptor] Endpoint:', config.url, 'Es público:', isPublicEndpoint);
 
-    // CRÍTICO: Si es endpoint público, BORRAR cualquier Authorization header
     if (isPublicEndpoint) {
       delete config.headers.Authorization;
       return config;
     }
 
-    // Para endpoints privados, agregar token
     const token = await SecureStore.getItemAsync('userToken');
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
@@ -38,6 +35,8 @@ api.interceptors.request.use(
   },
   (error) => {
     return Promise.reject(error);
+  }
+);
   }
 );
     }
