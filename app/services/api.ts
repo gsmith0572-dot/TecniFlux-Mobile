@@ -13,7 +13,7 @@ const api = axios.create({
 });
 
 // Request interceptor para agregar el token
-api.interceptors.request.use(
+// Request interceptor para agregar el token
 api.interceptors.request.use(
   async (config) => {
     const publicEndpoints = ['/auth/register', '/auth/login', 'register', 'login'];
@@ -37,17 +37,6 @@ api.interceptors.request.use(
     return Promise.reject(error);
   }
 );
-  }
-);
-    }
-    
-    console.log('[API Interceptor] URL:', config.url);
-    return config;
-  },
-  (error) => {
-    console.error('[API Interceptor] ❌ Error en request:', error);
-    return Promise.reject(error);
-  }
 );
 
 // Response interceptor para manejar errores
