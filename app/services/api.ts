@@ -37,7 +37,6 @@ api.interceptors.request.use(
     return Promise.reject(error);
   }
 );
-);
 
 // Response interceptor para manejar errores
 api.interceptors.response.use(
@@ -48,6 +47,7 @@ api.interceptors.response.use(
     }
     return Promise.reject(error);
   }
+);
 );
 
 export const authAPI = {
