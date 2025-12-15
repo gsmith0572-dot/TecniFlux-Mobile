@@ -28,7 +28,7 @@ export default function LoginScreen() {
     setLoading(true);
 
     try {
-      await authAPI.login(username, password);
+      await authAPI.login(username.trim(), password.trim());
       // Redirigir a dashboard (que verificará la suscripción)
       router.replace('/dashboard');
     } catch (error: any) {
