@@ -12,23 +12,23 @@ export default function DashboardScreen() {
   const router = useRouter();
   const { subscription } = useSubscription();
   const [isAdmin, setIsAdmin] = useState(false);
-
+  const [username, setUsername] = useState('');
   useEffect(() => {
-    checkAdminRole();
+    loadUserData();
   }, []);
 
-  const checkAdminRole = async () => {
+  const loadUserData = async () => {
     try {
       const userData = await SecureStore.getItemAsync('userData');
       if (userData) {
         const user = JSON.parse(userData);
         setIsAdmin(user.role === 'admin');
+        setUsername(user.username || 'Usuario');
       }
     } catch (error) {
-      console.error('[Dashboard] Error verificando rol:', error);
+      console.error('[Dashboard] Error cargando datos:', error);
     }
   };
-
   // 1. Función para ir a búsqueda general (cuando tocas la barra)
   const handleSearch = () => {
     router.push({
@@ -72,7 +72,7 @@ export default function DashboardScreen() {
         <View style={styles.header}>
           {/* Línea 1: Saludo */}
           <View style={styles.greetingContainer}>
-            <Text style={styles.greeting}>Hola, George</Text>
+            <Text style={styles.greeting}>Hola, {username}</Text>
           </View>
           
           {/* Línea 2: Badges e iconos */}
